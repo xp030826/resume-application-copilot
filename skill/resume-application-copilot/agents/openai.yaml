@@ -1,0 +1,6 @@
+interface:
+  display_name: "Resume Application Copilot"
+  short_description: "Build a private profile and safely prefill job applications"
+  default_prompt: "Use $resume-application-copilot to build my verified job profile and prepare a safe form-fill plan."
+policy:
+  allow_implicit_invocation: true

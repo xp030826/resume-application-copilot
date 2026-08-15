@@ -1,0 +1,17 @@
+{
+  "manifest_version": 3,
+  "name": "Resume Application Copilot",
+  "version": "0.1.0",
+  "description": "Unlock a local encrypted candidate profile, review mappings, and safely prefill recruitment forms.",
+  "permissions": ["storage", "activeTab"],
+  "action": {
+    "default_title": "Resume Application Copilot",
+    "default_popup": "popup.html"
+  },
+  "options_page": "options.html",
+  "content_scripts": [{
+    "matches": ["http://*/*", "https://*/*", "file://*/*"],
+    "js": ["lib/field-mapper.js", "content.js"],
+    "run_at": "document_idle"
+  }]
+}

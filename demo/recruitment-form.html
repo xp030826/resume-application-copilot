@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="icon" href="data:,">
+  <title>Resume Copilot 安全演示表单</title>
+  <style>
+    body{font-family:"Microsoft YaHei",sans-serif;background:#f4f6fb;color:#1d2940;margin:0}main{max-width:860px;margin:30px auto;background:white;padding:28px;border-radius:16px;box-shadow:0 10px 35px #dce2ef}h1{margin-top:0}.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.wide{grid-column:1/-1}label{display:block;font-weight:700;margin-bottom:5px}input,select,textarea{width:100%;box-sizing:border-box;padding:10px;border:1px solid #b8c3d6;border-radius:8px}textarea{min-height:92px}button{background:#1d2940;color:white;border:0;padding:11px 18px;border-radius:8px}.notice{background:#fff4df;padding:12px;border-radius:8px;margin-bottom:20px}
+  </style>
+</head>
+<body><main>
+  <h1>虚拟招聘申请表</h1>
+  <div class="notice">仅用于本地演示。扩展可以预填字段，但不会点击“提交申请”。</div>
+  <form id="application">
+    <div class="grid">
+      <div><label for="name">姓名</label><input id="name" name="candidate_name" autocomplete="name"></div>
+      <div><label for="phone">手机号</label><input id="phone" name="mobile" autocomplete="tel"></div>
+      <div><label for="email">电子邮箱</label><input id="email" name="email" autocomplete="email"></div>
+      <div><label for="city">现居城市</label><input id="city" name="current_city"></div>
+      <div><label for="role">期望职位</label><input id="role" name="target_role"></div>
+      <div><label for="availability">到岗时间</label><input id="availability" name="availability"></div>
+      <div><label for="school">毕业院校</label><input id="school" name="university"></div>
+      <div><label for="major">专业</label><input id="major" name="major"></div>
+      <div><label for="degree">学历</label><select id="degree" name="degree"><option value="">请选择</option><option>本科</option><option>硕士</option><option>博士</option></select></div>
+      <div><label for="gpa">GPA</label><input id="gpa" name="gpa"></div>
+      <div><label for="company">最近公司</label><input id="company" name="employer"></div>
+      <div><label for="title">岗位名称</label><input id="title" name="job_title"></div>
+      <div class="wide"><label for="skills">专业技能</label><textarea id="skills" name="skills"></textarea></div>
+      <div class="wide"><label for="intro">自我介绍</label><textarea id="intro" name="self_introduction"></textarea></div>
+      <div><label for="birth">出生日期（敏感）</label><input id="birth" name="birth_date" type="date"></div>
+      <div><label for="idcard">身份证号（限制字段）</label><input id="idcard" name="national_id"></div>
+      <div class="wide"><button id="submit" type="submit">提交申请</button></div>
+    </div>
+  </form>
+  <p id="result"></p>
+  <script>document.getElementById("application").addEventListener("submit",function(event){event.preventDefault();document.getElementById("result").textContent="提交按钮由用户手动点击；本演示不会发送数据。";});</script>
+</main></body></html>

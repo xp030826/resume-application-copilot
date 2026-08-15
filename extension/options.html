@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Resume Copilot 资料库</title><link rel="stylesheet" href="styles.css"></head>
+<body>
+  <main class="page"><section class="card">
+    <h1>本地加密个人资料库</h1>
+    <p>导入由 Skill 生成的 JSON，或使用虚拟示例。数据使用主密码在本机加密，不上传服务器。</p>
+    <div class="warning">请勿把真实 profile、vault、简历或密钥提交到 GitHub。</div>
+    <div class="actions"><button id="sample" class="secondary">载入虚拟示例</button><button id="import" class="secondary">导入 JSON</button><input id="file" type="file" accept=".json,application/json" hidden></div>
+    <label for="profile">个人资料 JSON</label>
+    <textarea id="profile" spellcheck="false"></textarea>
+    <label for="password">主密码（至少 8 位）</label>
+    <input id="password" type="password" autocomplete="new-password">
+    <div class="actions"><button id="save">加密保存</button><button id="unlock" class="secondary">解密现有资料</button></div>
+    <div id="status" class="status"></div>
+  </section></main>
+  <script src="lib/crypto-vault.js"></script><script src="options.js"></script>
+</body></html>

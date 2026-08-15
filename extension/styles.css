@@ -1,0 +1,21 @@
+:root { color-scheme: light; font-family: Inter, "Microsoft YaHei", sans-serif; color: #172033; background: #f5f7fb; }
+body { margin: 0; }
+.page { width: min(760px, calc(100vw - 32px)); margin: 24px auto; }
+.popup { width: 390px; padding: 16px; box-sizing: border-box; }
+.card { background: white; border: 1px solid #dde3ee; border-radius: 14px; padding: 16px; box-shadow: 0 8px 28px rgba(20, 36, 70, .08); }
+h1 { margin: 0 0 8px; font-size: 20px; }
+p { color: #5c677d; line-height: 1.55; }
+label { display: block; margin: 12px 0 6px; font-weight: 600; }
+input, textarea, button { box-sizing: border-box; font: inherit; }
+input[type=password], textarea { width: 100%; border: 1px solid #bcc7da; border-radius: 9px; padding: 10px; }
+textarea { min-height: 330px; resize: vertical; font-family: Consolas, monospace; font-size: 12px; }
+button { border: 0; border-radius: 9px; padding: 10px 14px; cursor: pointer; background: #6842d9; color: white; font-weight: 700; }
+button.secondary { background: #e9e5fb; color: #4d2db4; }
+button:disabled { opacity: .45; cursor: not-allowed; }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.status { min-height: 22px; margin-top: 10px; color: #3157a4; }
+.warning { padding: 10px; border-radius: 9px; background: #fff4df; color: #7b5112; font-size: 13px; }
+.plan { max-height: 340px; overflow: auto; margin-top: 12px; border-top: 1px solid #e5e9f1; }
+.plan-row { display: grid; grid-template-columns: 24px 1fr; gap: 6px; padding: 10px 0; border-bottom: 1px solid #eef1f6; }
+.plan-row small { display: block; color: #758097; margin-top: 3px; }
+.sensitive { color: #a33a3a; }
