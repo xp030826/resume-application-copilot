@@ -30,7 +30,7 @@
     ["skills", "技能与证书", "技能、语言、证书和资格"],
     ["answers", "常见申请答案", "开放式问题的事实基础和可复用答案"],
     ["ai", "AI 辅助设置", "使用你自己的 OpenAI-compatible API；密钥会随资料库一起加密"],
-    ["sensitive", "敏感信息", "身份证、家庭、银行卡和紧急联系人；填充时需要再次确认"]
+    ["sensitive", "敏感信息", "身份证、家庭、银行卡和紧急联系人；与其他匹配字段一样参与填充"]
   ];
 
   function show(node, message, error) {
@@ -47,7 +47,13 @@
 
   function inputFor(definition, value) {
     const node = definition.type === "textarea" ? document.createElement("textarea") : document.createElement("input");
-    if (node.tagName !== "TEXTAREA") node.type = definition.type === "list" ? "text" : definition.type;
+    if (node.tagName !== "TEXTAREA") {
+      node.type = definition.type === "list" ? "text" : definition.type;
+      if (definition.type === "date" && String(value || "") === "至今") {
+        node.type = "text";
+        node.placeholder = "YYYY-MM-DD 或 至今";
+      }
+    }
     node.value = definition.type === "list" ? (Array.isArray(value) ? value.join("、") : String(value || "")) : String(value || "");
     if (definition.type === "textarea") node.rows = 3;
     node.dataset.path = definition.path;
@@ -89,6 +95,10 @@
         const label = element("label", "field-label", fieldDefinition[1]);
         const longTextKeys = ["description", "contribution", "achievements", "results", "tools", "skills", "notes", "activity"];
         const input = document.createElement(longTextKeys.includes(fieldDefinition[0]) ? "textarea" : "input");
+        if (input.tagName !== "TEXTAREA" && /(?:^|_)(?:date|start_date|end_date)$/.test(fieldDefinition[0])) {
+          input.type = String(record[fieldDefinition[0]] || "") === "至今" ? "text" : "date";
+          if (input.type === "text") input.placeholder = "YYYY-MM-DD 或 至今";
+        }
         if (input.tagName === "TEXTAREA") input.rows = 3;
         input.value = Array.isArray(record[fieldDefinition[0]]) ? record[fieldDefinition[0]].join("、") : String(record[fieldDefinition[0]] || "");
         input.dataset.collection = key;
@@ -235,9 +245,9 @@
       const check = document.createElement("input");
       check.type = "checkbox";
       check.dataset.index = String(index);
-      check.checked = !candidate.sensitive && Number(candidate.confidence || 0) >= 0.7;
+      check.checked = Number(candidate.confidence || 0) >= 0.7;
       const body = element("span");
-      body.append(element("strong", "", candidate.label || candidate.path), element("span", "candidate-value", " → " + candidateValue(candidate)), element("small", "field-meta", candidate.sourceDocument + " · 置信度 " + Math.round(candidate.confidence * 100) + "%" + (candidate.sensitive ? " · 敏感，默认不选" : "")));
+      body.append(element("strong", "", candidate.label || candidate.path), element("span", "candidate-value", " → " + candidateValue(candidate)), element("small", "field-meta", candidate.sourceDocument + " · 置信度 " + Math.round(candidate.confidence * 100) + "%" + (candidate.sensitive ? " · 敏感字段" : "")));
       row.append(check, body);
       candidateNode.append(row);
     });

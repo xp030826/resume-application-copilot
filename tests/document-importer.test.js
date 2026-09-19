@@ -93,9 +93,23 @@ test("parses labeled education details when no date-range header exists", functi
   assert.equal(byPath["education.0.department"].value, "经济与金融学院");
   assert.equal(byPath["education.0.major"].value, "应用经济学");
   assert.equal(byPath["education.0.degree"].value, "本科");
-  assert.equal(byPath["education.0.start_date"].value, "2021.09");
-  assert.equal(byPath["education.0.end_date"].value, "2025.06");
+  assert.equal(byPath["education.0.start_date"].value, "2021-09");
+  assert.equal(byPath["education.0.end_date"].value, "2025-06");
   assert.equal(byPath["education.0.gpa"].value, "3.7/4.0");
   assert.equal(byPath["education.0.ranking"].value, "5/100");
   assert.match(byPath["education.0.courses"].value, /计量经济学/);
+});
+
+test("keeps day precision when parsing dates", function () {
+  const candidates = importer.candidatesFromText([
+    "出生日期：2001年2月3日",
+    "教育经历",
+    "学校：示例大学",
+    "入学时间：2021-09-01",
+    "毕业时间：2025/06/30"
+  ].join("\n"), "date-resume.pdf");
+  const byPath = Object.fromEntries(candidates.map((candidate) => [candidate.path, candidate]));
+  assert.equal(byPath["personal.birth_date"].value, "2001-02-03");
+  assert.equal(byPath["education.0.start_date"].value, "2021-09-01");
+  assert.equal(byPath["education.0.end_date"].value, "2025-06-30");
 });

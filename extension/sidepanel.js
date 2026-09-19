@@ -76,7 +76,7 @@
       check.type = "checkbox";
       check.dataset.index = String(index);
       check.disabled = !item.matched;
-      check.checked = Boolean(item.matched && !item.sensitive && item.confidence >= 0.7);
+      check.checked = Boolean(item.matched && item.confidence >= 0.7);
       const body = document.createElement("span");
       const title = document.createElement("strong");
       title.textContent = item.fieldLabel || "未命名字段";
@@ -120,7 +120,7 @@
   selectSafeButton.addEventListener("click", function () {
     planNode.querySelectorAll("input[type=checkbox]:not(:disabled)").forEach(function (box, index) {
       const item = plan[Number(box.dataset.index)];
-      box.checked = Boolean(item && !item.sensitive && item.confidence >= 0.7);
+      box.checked = Boolean(item && item.matched && item.confidence >= 0.7);
     });
   });
 
@@ -153,8 +153,6 @@
   fillButton.addEventListener("click", async function () {
     try {
       const selected = Array.from(planNode.querySelectorAll("input:checked")).map(function (box) { return plan[Number(box.dataset.index)]; }).filter(Boolean);
-      const restricted = selected.filter(function (item) { return item.sensitive; });
-      if (restricted.length && !window.confirm("已选择 " + restricted.length + " 个敏感字段。请确认当前页面确实要求这些信息，继续填充吗？")) return;
       const tab = await activeTab();
       const response = await chrome.tabs.sendMessage(tab.id, { type: "resume-copilot-fill", items: selected });
       show("已填充 " + response.filled + " 个字段。请人工复核，系统不会提交。");

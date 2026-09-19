@@ -198,13 +198,19 @@
   }
 
   function normalizeDate(value) {
-    return String(value || "").replace(/\s+/g, "").replace(/[年月./]/g, "-").replace(/-+$/, "");
+    const raw = String(value || "").replace(/\s+/g, "").replace(/[年/月.]/g, "-").replace(/日/g, "").replace(/-+/g, "-").replace(/^-|-$/g, "");
+    const match = /^(\d{4})(?:-(\d{1,2})(?:-(\d{1,2}))?)?$/.exec(raw);
+    if (!match) return String(value || "").trim();
+    if (!match[2]) return match[1];
+    if (!match[3]) return match[1] + "-" + String(match[2]).padStart(2, "0");
+    return match[1] + "-" + String(match[2]).padStart(2, "0") + "-" + String(match[3]).padStart(2, "0");
   }
 
   function dateRange(line) {
-    const dateToken = "(?:19|20)\\d{2}(?:\\s*[年./-]\\s*\\d{1,2}(?:\\s*月)?)?";
-    const expression = new RegExp("(" + dateToken + ")\\s*(?:至|到|[-—–~～])\\s*(" + dateToken + "|至今|现在)", "i");
-    const match = expression.exec(line);
+    const dateToken = "(?:19|20)\\d{2}(?:(?:\\s*年\\s*\\d{1,2}\\s*月?(?:\\s*\\d{1,2}\\s*日?)?)|(?:\\s*[./-]\\s*\\d{1,2}(?:\\s*[./-]\\s*\\d{1,2})?))?";
+    const expression = new RegExp("(" + dateToken + ")\\s*(?:至|到|~|～|—|–|\\s+-\\s+)\\s*(" + dateToken + "|至今|现在)", "i");
+    const compactExpression = /((?:19|20)\d{2}[./-]\d{1,2})\s*-\s*((?:19|20)\d{2}[./-]\d{1,2})/i;
+    const match = expression.exec(line) || compactExpression.exec(line);
     if (!match) return null;
     return { start: normalizeDate(match[1]), end: match[2].includes("今") || match[2].includes("现") ? "至今" : normalizeDate(match[2]), index: match.index, length: match[0].length };
   }
@@ -399,8 +405,8 @@
         const department = education.department || findFirst(fullText, [/(?:院系|学院|系所|研究院)[：:]\s*([^\n，,]+)/i]);
         const major = education.major || findFirst(fullText, [/(?:专业|主修)[：:]\s*([^\n，,]+)/i]);
         const degree = education.degree || findFirst(fullText, [/(?:学历|学位)[：:]\s*([^\n，,]+)/i]);
-        const start = findFirst(fullText, [/(?:入学时间|教育开始|开始时间)[：:]\s*([^\s至到-]+)/i]);
-        const end = findFirst(fullText, [/(?:毕业时间|教育结束|结束时间)[：:]\s*([^\s至到-]+)/i]);
+        const start = findFirst(fullText, [/(?:入学时间|教育开始|开始时间)[：:]\s*((?:19|20)\d{2}(?:年\d{1,2}月?(?:\d{1,2}日?)?|[./-]\d{1,2}(?:[./-]\d{1,2})?))/i]);
+        const end = findFirst(fullText, [/(?:毕业时间|教育结束|结束时间)[：:]\s*((?:19|20)\d{2}(?:年\d{1,2}月?(?:\d{1,2}日?)?|[./-]\d{1,2}(?:[./-]\d{1,2})?))/i]);
         const gpa = labeledValue(fullText, "GPA|平均分|绩点", "专业排名|排名|名次|核心课程|课程");
         const ranking = labeledValue(fullText, "专业排名|排名|名次", "核心课程|课程|GPA|平均分|绩点");
         const courses = labeledValue(fullText, "核心课程|主修课程|课程", "不存在的下一个字段");
@@ -408,8 +414,8 @@
         if (department) add("education.0.department", department, false, "教育经历·院系", 0.82);
         if (major) add("education.0.major", major, false, "教育经历·专业", 0.84);
         if (degree) add("education.0.degree", degree, false, "教育经历·学历/学位", 0.84);
-        if (start) add("education.0.start_date", start, false, "教育经历·开始时间", 0.78);
-        if (end) add("education.0.end_date", end, false, "教育经历·结束时间", 0.78);
+        if (start) add("education.0.start_date", normalizeDate(start), false, "教育经历·开始时间", 0.78);
+        if (end) add("education.0.end_date", normalizeDate(end), false, "教育经历·结束时间", 0.78);
         if (gpa) add("education.0.gpa", gpa, false, "教育经历·GPA", 0.82);
         if (ranking) add("education.0.ranking", ranking, false, "教育经历·排名", 0.82);
         if (courses) add("education.0.courses", courses, false, "教育经历·课程", 0.78);
@@ -501,7 +507,8 @@
     add("personal.gender", findFirst(text, [/(?:性别|gender|sex)[：:\s]*(男|女|男性|女性|其他|不便透露|male|female|other)/i, /^(男|女|男性|女性)$/m]), false, "性别");
     add("personal.ethnicity", findFirst(text, [/(?:民族|民族成分|ethnicity)[：:\s]*([^\s\n，,]+)/i]), false, "民族");
     add("personal.marital_status", findFirst(text, [/(?:婚姻状况|婚姻状态|marital status)[：:\s]*(未婚|已婚|离异|丧偶|保密|single|married|divorced|widowed)/i]), false, "婚姻状况");
-    add("personal.birth_date", findFirst(text, [/(?:出生日期|出生年月|生日)[：:\s]*(\d{4}[年\/-]\d{1,2}(?:月)?(?:[日\/-]\d{1,2})?)/i]), true, "出生日期");
+    const birthDate = findFirst(text, [/(?:出生日期|出生年月|生日)[：:\s]*((?:19|20)\d{2}(?:年\d{1,2}月?(?:\d{1,2}日?)?|[./-]\d{1,2}(?:[./-]\d{1,2})?))/i]);
+    add("personal.birth_date", normalizeDate(birthDate), true, "出生日期");
     add("sensitive.national_id", findFirst(text, [/(?:身份证号|身份证号码|公民身份号码)[：:\s]*([0-9Xx]{15,18})/i]), true, "身份证号");
     add("personal.hometown", findFirst(text, [/(?:籍贯)[：:\s]*([^\s\n，,]+)/i]), true, "籍贯");
     add("personal.birthplace", findFirst(text, [/(?:生源地)[：:\s]*([^\s\n，,]+)/i]), true, "生源地");
@@ -543,7 +550,8 @@
       const dateIndex = experienceLine.search(/\d{4}[年.\/-]\d{1,2}/);
       const beforeDate = dateIndex >= 0 ? experienceLine.slice(0, dateIndex).trim() : experienceLine;
       const parts = beforeDate.split(/\s*[|｜]\s*|\s+[-—–]\s+/).map(function (part) { return part.trim(); }).filter(Boolean);
-      const dates = experienceLine.match(/\d{4}[年.\/-]\d{1,2}/g) || [];
+      const range = dateRange(experienceLine);
+      const dates = range ? [range.start, range.end] : (experienceLine.match(/\d{4}[年.\/-]\d{1,2}/g) || []).map(normalizeDate);
       add("experience.0.company", parts[0] || beforeDate, false, "最近公司");
       add("experience.0.title", parts[1] || "", false, "岗位名称");
       add("experience.0.start_date", dates[0] || "", false, "实习开始时间");

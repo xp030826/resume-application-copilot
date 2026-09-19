@@ -113,6 +113,20 @@
     return String(value);
   }
 
+  function datePart(meta, value) {
+    const context = [meta.label, meta.formLabel, meta.context, meta.placeholder, meta.name, meta.id]
+      .filter(Boolean).join(" ");
+    const match = /^(\d{4})(?:-(\d{2})(?:-(\d{2}))?)?$/.exec(String(value || "").trim());
+    if (!match) return value;
+    const isYear = /(?:年份|[（(]\s*年\s*[)）]|year\b)/i.test(context);
+    const isMonth = /(?:月份|[（(]\s*月\s*[)）]|month\b)/i.test(context);
+    const isDay = /(?:[（(]\s*日\s*[)）]|day\b)/i.test(context);
+    if (isYear) return match[1];
+    if (isMonth && match[2]) return String(Number(match[2]));
+    if (isDay && match[3]) return String(Number(match[3]));
+    return value;
+  }
+
   function score(meta, aliases) {
     const fields = [meta.label, meta.formLabel, meta.context, meta.dataLabel, meta.title, meta.placeholder, meta.name, meta.id, meta.autocomplete, meta.ariaLabel]
       .map(normalize).filter(Boolean);
@@ -138,7 +152,7 @@
         const provenance = profile && profile.provenance && profile.provenance[definition.path];
         best = {
           path: definition.path,
-          value: value,
+          value: datePart(meta, value),
           confidence: confidence,
           sensitive: definition.sensitive,
           sourceDocument: provenance && provenance.sourceDocument ? provenance.sourceDocument : "资料库"

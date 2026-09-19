@@ -55,3 +55,10 @@ test("maps common Chinese dropdown labels", function () {
   assert.equal(mapper.planField({ label: "婚姻状况" }, dropdownProfile).value, "未婚");
   assert.equal(mapper.planField({ label: "意向工作地（27秋招）" }, dropdownProfile).value, "广州、深圳");
 });
+
+test("maps a full date to separate year, month, and day controls", function () {
+  const dateProfile = { personal: { birth_date: "2001-02-03" } };
+  assert.equal(mapper.planField({ label: "出生日期（年）" }, dateProfile).value, "2001");
+  assert.equal(mapper.planField({ label: "出生日期（月）" }, dateProfile).value, "2");
+  assert.equal(mapper.planField({ label: "出生日期（日）" }, dateProfile).value, "3");
+});

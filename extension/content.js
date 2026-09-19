@@ -138,6 +138,13 @@
     const b = ResumeCopilotMapper.normalize(right);
     if (!a || !b) return false;
     if (a === b || a.includes(b) || b.includes(a)) return true;
+    const numeric = function (value) {
+      const match = String(value || "").match(/(?:^|[^0-9])(\d{1,4})(?:年|月|日)?(?:$|[^0-9])/);
+      return match ? Number(match[1]) : NaN;
+    };
+    const numericLeft = numeric(left);
+    const numericRight = numeric(right);
+    if (Number.isFinite(numericLeft) && Number.isFinite(numericRight) && numericLeft === numericRight) return true;
     const groups = [
       ["博士", "博士研究生", "phd", "doctor"],
       ["硕士", "硕士研究生", "研究生", "master", "mba"],
