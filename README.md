@@ -139,6 +139,44 @@ python -m unittest discover -s tests -p "test_*.py"
 
 Both the JavaScript and Python test suites should pass. After changing extension code, rerun the tests and reload the extension from `edge://extensions` or `chrome://extensions`.
 
+## 自动同步到 GitHub · Automatic GitHub sync
+
+源码、README 和发布 ZIP 可以通过本地监控脚本自动提交并推送到 GitHub。个人资料库、简历原文、导入材料和敏感信息不会被这个脚本读取或上传；这些内容仍只保存在浏览器本地。
+
+Source code, README files, and release ZIPs can be committed and pushed automatically by the local watcher. The watcher does not read or upload the profile vault, resume text, imported materials, or sensitive data; those remain local in the browser.
+
+先确保本机已经完成 GitHub 登录，并且 `origin` 指向你的仓库：
+
+First, make sure GitHub authentication is configured on this computer and that `origin` points to your repository:
+
+```bash
+git remote -v
+```
+
+只同步一次：
+
+Sync once:
+
+```bash
+npm run sync:github
+```
+
+持续监控源码变更并自动打包、提交、推送：
+
+Watch for source changes and automatically package, commit, and push:
+
+```bash
+npm run watch:github
+```
+
+启动监控后，修改 `extension/`、`README.md`、`demo/`、`skill/` 或 `tests/` 中的文件，脚本会重新生成当前版本安装包，然后同步到当前 Git 分支。按 `Ctrl+C` 停止监控。
+
+Once the watcher is running, changes under `extension/`, `README.md`, `demo/`, `skill/`, or `tests/` trigger a new package and a push to the current Git branch. Press `Ctrl+C` to stop watching.
+
+脚本会阻止 PDF、DOCX、个人资料 JSON、`private/` 和 `vault` 文件进入提交，也不会强制覆盖远程分支。如果 GitHub 上存在本地没有的提交，请先手动合并远程历史，再重新运行同步。
+
+The script blocks PDFs, DOCX files, profile JSON exports, `private/`, and `vault` files from commits. It also refuses to force-overwrite the remote branch. If GitHub contains commits missing locally, merge the remote history first and then run the sync again.
+
 ## 隐私与安全边界 · Privacy and security boundaries
 
 - 个人资料、导入原文、解析候选、敏感字段和 API Key 默认只保存在浏览器本地。

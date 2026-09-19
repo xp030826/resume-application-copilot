@@ -4,7 +4,10 @@
   "private": true,
   "description": "Privacy-first AI resume profile and recruitment form prefill project",
   "scripts": {
-    "test": "node --test --test-isolation=none tests/*.test.js"
+    "test": "node --test --test-isolation=none tests/*.test.js",
+    "package:extension": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/package-extension.ps1",
+    "sync:github": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/sync-to-github.ps1",
+    "watch:github": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/watch-and-sync.ps1"
   },
   "license": "MIT"
 }
