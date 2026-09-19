@@ -245,9 +245,33 @@
     return [String(value || "").trim(), ""];
   }
 
+  function parseLanguageRecords(value) {
+    const segments = String(value || "").split(/[\n；;,，、|｜]+/).map(function (item) { return item.trim(); }).filter(Boolean);
+    const languagePatterns = [
+      ["英语", /英语|英文|english/i], ["日语", /日语|日文|japanese/i], ["韩语", /韩语|韩国语|korean/i],
+      ["法语", /法语|french/i], ["德语", /德语|german/i], ["西班牙语", /西班牙语|spanish/i],
+      ["俄语", /俄语|russian/i], ["普通话", /普通话|国语|mandarin/i], ["粤语", /粤语|cantonese/i]
+    ];
+    return segments.map(function (segment) {
+      const language = languagePatterns.find(function (item) { return item[1].test(segment); });
+      if (!language) return null;
+      const levelMatch = segment.match(/(CET[-\s]?[四4六6]|TEM[-\s]?[四4八8]|IELTS|TOEFL|TOPIK\s*\d*|雅思|托福|英语四级|英语六级|专业四级|专业八级|日语\s*N[1-5]|N[1-5]|二级甲等|二级乙等|精通|熟练|良好|一般|入门|母语)/i);
+      const scoreMatch = segment.match(/(?:成绩|分数|score|雅思|IELTS|托福|TOEFL)[^0-9]{0,8}(\d{1,3}(?:\.\d+)?)/i) || segment.match(/CET[-\s]?[四4六6][^0-9]{0,4}(\d{3})/i);
+      const certificateMatch = segment.match(/(CET[-\s]?[四4六6]|TEM[-\s]?[四4八8]|IELTS|TOEFL|TOPIK\s*\d*|雅思|托福|英语四级|英语六级|专业四级|专业八级|日语\s*N[1-5]|N[1-5]|普通话水平测试)/i);
+      return {
+        language: language[0],
+        level: levelMatch ? levelMatch[1] : "",
+        score: scoreMatch ? scoreMatch[1] : "",
+        certificate: certificateMatch ? certificateMatch[1] : "",
+        notes: segment
+      };
+    }).filter(Boolean);
+  }
+
   function splitEducationHeader(value) {
     const raw = String(value || "").replace(/[：:]/g, ":").trim();
     const labeledSchool = raw.match(/(?:学校|院校|毕业院校)\s*:\s*([^|｜]+)/i);
+    const labeledSchoolType = raw.match(/(?:学校类型|院校类型|学校性质|院校性质|school type|institution type)\s*:\s*([^|｜]+)/i);
     const labeledMajor = raw.match(/(?:专业|主修)\s*:\s*([^|｜]+)/i);
     const labeledDepartment = raw.match(/(?:院系|学院|系所|department|faculty)\s*:\s*([^|｜]+)/i);
     const labeledDegree = raw.match(/(?:学历|学位|degree)\s*:\s*([^|｜]+)/i);
@@ -255,11 +279,15 @@
     let school = labeledSchool ? labeledSchool[1].trim() : (chunks[0] || raw);
     let rest = labeledSchool ? chunks.filter(function (part) { return part !== school; }) : chunks.slice(1);
     let degree = labeledDegree ? labeledDegree[1].trim() : "";
+    let schoolType = labeledSchoolType ? labeledSchoolType[1].trim() : "";
     const degreePattern = /(博士研究生|硕士研究生|研究生|博士|硕士|本科生|本科|学士|大专|专科|高中|中专|Ph\.?D\.?|Master(?:'s)?|Bachelor(?:'s)?)/i;
     const degreeSource = rest.join(" ");
     const degreeMatch = degreeSource.match(degreePattern);
     if (!degree && degreeMatch) degree = degreeMatch[1];
-    let nonDegree = rest.join(" ").replace(degreePattern, " ").replace(/\s+/g, " ").trim();
+    const schoolTypePattern = /(985|211|双一流|普通本科|本科院校|高职高专|高职|专科院校|职业技术学院|独立学院|中外合作|公办|民办|研究型大学)/i;
+    const schoolTypeMatch = rest.join(" ").match(schoolTypePattern);
+    if (!schoolType && schoolTypeMatch) schoolType = schoolTypeMatch[1];
+    let nonDegree = rest.join(" ").replace(degreePattern, " ").replace(schoolTypePattern, " ").replace(/\s+/g, " ").trim();
     let department = labeledDepartment ? labeledDepartment[1].trim() : "";
     let major = labeledMajor ? labeledMajor[1].trim() : "";
     if (!major && nonDegree) {
@@ -272,6 +300,7 @@
     if (!major && rest.length === 1 && !degreeMatch) major = rest[0];
     return {
       school: school.replace(/\s+/g, " ").trim(),
+      school_type: schoolType.replace(/\s+/g, " ").trim(),
       department: department.replace(/\s+/g, " ").trim(),
       major: major.replace(/\s+/g, " ").trim(),
       degree: degree.trim()
@@ -376,7 +405,11 @@
         const text = joinDetails(block.lines);
         add("skills.summary", text, false, "技能特长（完整）", 0.84);
         const languageLine = block.lines.find(function (line) { return /语言|英语|日语|韩语|普通话|外语/.test(line); });
-        if (languageLine) add("skills.languages", stripBullet(languageLine), false, "语言能力", 0.84);
+        if (languageLine) {
+          const languageText = stripBullet(languageLine);
+          add("skills.languages", languageText, false, "语言能力", 0.84);
+          addLanguageRecords(languageText);
+        }
         return;
       }
       if (block.key === "certificates") {
@@ -402,6 +435,7 @@
         const header = block.lines.find(function (line) { return /(大学|学院|研究院|学校|院校)/.test(line); }) || "";
         const education = splitEducationHeader(header);
         const school = education.school || findFirst(fullText, [/(?:毕业院校|学校|院校)[：:]\s*([^\n，,]+)/i]);
+        const schoolType = education.school_type || findFirst(fullText, [/(?:学校类型|院校类型|学校性质|院校性质)[：:]\s*([^\n，,]+)/i]);
         const department = education.department || findFirst(fullText, [/(?:院系|学院|系所|研究院)[：:]\s*([^\n，,]+)/i]);
         const major = education.major || findFirst(fullText, [/(?:专业|主修)[：:]\s*([^\n，,]+)/i]);
         const degree = education.degree || findFirst(fullText, [/(?:学历|学位)[：:]\s*([^\n，,]+)/i]);
@@ -411,6 +445,7 @@
         const ranking = labeledValue(fullText, "专业排名|排名|名次", "核心课程|课程|GPA|平均分|绩点");
         const courses = labeledValue(fullText, "核心课程|主修课程|课程", "不存在的下一个字段");
         if (school) add("education.0.school", school, false, "教育经历·学校", 0.84);
+        if (schoolType) add("education.0.school_type", schoolType, false, "教育经历·学校类型", 0.82);
         if (department) add("education.0.department", department, false, "教育经历·院系", 0.82);
         if (major) add("education.0.major", major, false, "教育经历·专业", 0.84);
         if (degree) add("education.0.degree", degree, false, "教育经历·学历/学位", 0.84);
@@ -430,6 +465,7 @@
           if (!header && details.length && !/^研究方向|^GPA|^平均分|^绩点|^排名|^专业排名|^核心课程|^课程/.test(details[0])) header = details.shift();
           const education = splitEducationHeader(header);
           if (education.school) add(prefix + "school", education.school, false, "教育经历·学校", 0.86);
+          if (education.school_type) add(prefix + "school_type", education.school_type, false, "教育经历·学校类型", 0.82);
           if (education.department) add(prefix + "department", education.department, false, "教育经历·院系", 0.82);
           if (education.major) add(prefix + "major", education.major, false, "教育经历·专业", 0.84);
           if (education.degree) add(prefix + "degree", education.degree, false, "教育经历·学历/学位", 0.86);
@@ -499,6 +535,16 @@
       seen[path] = true;
       candidates.push({ path: path, value: value, sensitive: Boolean(sensitive), label: label || path, sourceDocument: sourceDocument, confidence: confidence === undefined ? 0.82 : confidence });
     };
+    const addLanguageRecords = function (value) {
+      parseLanguageRecords(value).forEach(function (record, index) {
+        const prefix = "language_records." + index + ".";
+        add(prefix + "language", record.language, false, "语言能力·语言", 0.80);
+        if (record.level) add(prefix + "level", record.level, false, "语言能力·等级", 0.80);
+        if (record.score) add(prefix + "score", record.score, false, "语言能力·成绩", 0.78);
+        if (record.certificate) add(prefix + "certificate", record.certificate, false, "语言能力·证书", 0.80);
+        add(prefix + "notes", record.notes, false, "语言能力·原文", 0.76);
+      });
+    };
 
     const nameLine = lines.find(function (line) { return /^[\u4e00-\u9fa5·]{2,6}$/.test(line) && !/(教育背景|项目经历|实习经历|技能特长|自我评价)/.test(line); });
     add("personal.full_name", findFirst(text, [/姓名[：:]\s*([^\s\n，,]{2,12})/i]) || nameLine, false, "姓名");
@@ -506,7 +552,7 @@
     add("personal.email", findFirst(text, [/(?:邮箱|电子邮箱|email)[：:\s]*([\w.+-]+@[\w.-]+\.[A-Za-z]{2,})/i, /([\w.+-]+@[\w.-]+\.[A-Za-z]{2,})/i]), false, "邮箱");
     add("personal.gender", findFirst(text, [/(?:性别|gender|sex)[：:\s]*(男|女|男性|女性|其他|不便透露|male|female|other)/i, /^(男|女|男性|女性)$/m]), false, "性别");
     add("personal.ethnicity", findFirst(text, [/(?:民族|民族成分|ethnicity)[：:\s]*([^\s\n，,]+)/i]), false, "民族");
-    add("personal.marital_status", findFirst(text, [/(?:婚姻状况|婚姻状态|marital status)[：:\s]*(未婚|已婚|离异|丧偶|保密|single|married|divorced|widowed)/i]), false, "婚姻状况");
+    add("personal.marital_status", findFirst(text, [/(?:婚姻状况|婚姻状态|婚姻情况|marital status)[：:\s]*(未婚|已婚|离异|丧偶|保密|未说明|不便透露|single|married|divorced|widowed)/i]), false, "婚姻状况");
     const birthDate = findFirst(text, [/(?:出生日期|出生年月|生日)[：:\s]*((?:19|20)\d{2}(?:年\d{1,2}月?(?:\d{1,2}日?)?|[./-]\d{1,2}(?:[./-]\d{1,2})?))/i]);
     add("personal.birth_date", normalizeDate(birthDate), true, "出生日期");
     add("sensitive.national_id", findFirst(text, [/(?:身份证号|身份证号码|公民身份号码)[：:\s]*([0-9Xx]{15,18})/i]), true, "身份证号");
@@ -531,8 +577,13 @@
       add("education.0.school", findFirst(text, [/(?:毕业院校|学校|院校)[：:\s]*([^\n，,]+)/i]), false, "学校");
       add("education.0.major", findFirst(text, [/(?:专业|主修)[：:]\s*([^\n，,]+)/i]), false, "专业");
     }
-    add("education.0.degree", findFirst(text, [/(?:学历|学位)[：:]\s*(本科|硕士|博士|大专|专科|高中|本科生|研究生)/i]), false, "学历/学位");
-    add("skills.languages", findFirst(text, [/(?:语言能力|外语)[：:]\s*([^\n]+)/i]), false, "语言能力");
+    add("education.0.degree", findFirst(text, [/(?:最高学历|学历|学位)[：:]\s*(本科|硕士|博士|大专|专科|高中|本科生|研究生)/i]), false, "学历/学位");
+    add("education.0.school_type", findFirst(text, [/(?:最高学历学校类型|学校类型|院校类型|学校性质|院校性质)[：:]\s*([^\n，,]+)/i]), false, "学校类型");
+    const languageText = findFirst(text, [/(?:语言能力|外语|语言水平)[：:]\s*([^\n]+)/i]) || lines.filter(function (line) { return /英语|英文|日语|日文|韩语|普通话|粤语|法语|德语|雅思|托福|CET|TEM|语言能力|外语/.test(line); }).join("；");
+    if (languageText) {
+      add("skills.languages", languageText, false, "语言能力");
+      addLanguageRecords(languageText);
+    }
 
     const projectLine = lines.find(function (line) { return /(大赛|项目)/.test(line) && /\d{4}[年.\/-]\d{1,2}/.test(line) && !/项目经历/.test(line); });
     if (projectLine) {

@@ -12,7 +12,7 @@
     ["personal.birth_date", ["出生日期", "生日", "birth date", "birthday", "date of birth"], true],
     ["personal.nationality", ["国籍", "nationality", "citizenship"], true],
     ["personal.ethnicity", ["民族", "民族成分", "ethnicity", "race"], false],
-    ["personal.marital_status", ["婚姻状况", "婚姻状态", "婚姻", "marital status", "marital"], false],
+    ["personal.marital_status", ["婚姻状况", "婚姻状态", "婚姻情况", "婚姻", "marital status", "marital"], false],
     ["personal.phone", ["手机", "手机号", "联系电话", "电话", "phone", "mobile", "telephone"], false],
     ["personal.email", ["邮箱", "电子邮箱", "email", "e-mail"], false],
     ["personal.wechat", ["微信", "wechat"], true],
@@ -38,10 +38,11 @@
     ["intent.internship_months", ["实习月数", "实习时长", "实习期限", "internship duration", "internship length"], false],
     ["intent.salary_monthly", ["期望薪资", "期望月薪", "月薪", "expected salary", "monthly salary", "compensation"], true],
     ["intent.relocation", ["异地", "出差", "接受调动", "relocation", "travel"], true],
-    ["education.0.school", ["学校", "院校", "毕业院校", "school", "university", "institution", "college"], false],
+    ["education.0.school", ["学校", "院校", "毕业院校", "最高学历学校", "school", "university", "institution", "college"], false],
+    ["education.0.school_type", ["学校类型", "院校类型", "学校性质", "院校性质", "最高学历学校类型", "school type", "institution type", "university type"], false],
     ["education.0.department", ["院系", "学院", "department", "faculty"], false],
     ["education.0.major", ["专业", "major", "field of study", "discipline"], false],
-    ["education.0.degree", ["学历", "学位", "degree", "education level", "qualification"], false],
+    ["education.0.degree", ["学历", "学位", "最高学历", "最高学历/学位", "degree", "education level", "qualification"], false],
     ["education.0.start_date", ["入学时间", "教育开始时间", "education start", "start of education"], false],
     ["education.0.end_date", ["毕业时间", "教育结束时间", "graduation date", "graduation year", "education end"], false],
     ["education.0.gpa", ["gpa", "绩点", "平均分", "grade point average"], false],
@@ -79,7 +80,7 @@
     ["volunteer_experience.0.role", ["志愿角色", "volunteer role"], false],
     ["volunteer_experience.0.description", ["志愿内容", "社会实践内容", "volunteer description"], false],
     ["skills.summary", ["技能", "专业技能", "技能特长", "skills", "expertise", "technical skills"], false],
-    ["skills.languages", ["语言能力", "外语", "languages", "language skills"], false],
+    ["skills.languages", ["语言能力", "外语", "外语水平", "英语水平", "语言等级", "语言证书", "languages", "language skills", "language proficiency"], false],
     ["skills.certificates", ["证书", "资格证书", "certificates", "licenses"], false],
     ["answers.self_introduction", ["自我介绍", "自我评价", "个人总结", "self introduction", "summary", "about yourself", "tell us about yourself"], false],
     ["answers.motivation", ["求职动机", "申请原因", "申请动机", "why us", "motivation", "why do you want"], false],
@@ -111,6 +112,20 @@
     if (value === undefined || value === null) return "";
     if (typeof value === "object") return "";
     return String(value);
+  }
+
+  function profileValue(profile, path) {
+    const direct = getPath(profile, path);
+    if (path === "skills.languages" && !renderValue(direct)) {
+      const records = Array.isArray(profile && profile.language_records) ? profile.language_records : [];
+      return records.map(function (record) {
+        const name = record && (record.language || record.name);
+        if (!name) return "";
+        const details = [record.level, record.score, record.certificate].filter(Boolean).join(" ");
+        return name + (details ? "（" + details + "）" : "");
+      }).filter(Boolean).join("、");
+    }
+    return direct;
   }
 
   function datePart(meta, value) {
@@ -145,7 +160,7 @@
   function planField(meta, profile) {
     let best = null;
     definitions.forEach(function (definition) {
-      const value = renderValue(getPath(profile, definition.path));
+      const value = renderValue(profileValue(profile, definition.path));
       if (!value) return;
       const confidence = score(meta, definition.aliases);
       if (confidence >= 0.55 && (!best || confidence > best.confidence)) {

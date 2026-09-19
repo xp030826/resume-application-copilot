@@ -62,3 +62,12 @@ test("maps a full date to separate year, month, and day controls", function () {
   assert.equal(mapper.planField({ label: "出生日期（月）" }, dateProfile).value, "2");
   assert.equal(mapper.planField({ label: "出生日期（日）" }, dateProfile).value, "3");
 });
+
+test("builds a fill value from structured language records", function () {
+  const match = mapper.planField({ label: "语言能力" }, {
+    language_records: [{ language: "英语", level: "CET-6", score: "580" }]
+  });
+  assert.equal(match.path, "skills.languages");
+  assert.match(match.value, /英语/);
+  assert.match(match.value, /580/);
+});

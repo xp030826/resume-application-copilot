@@ -22,6 +22,7 @@
     ["personal", "基础与联系信息", "个人身份、联系方式、籍贯和公开链接"],
     ["intent", "求职偏好", "目标岗位、城市、到岗时间和工作偏好"],
     ["education", "教育信息", "最高学历和其他教育经历"],
+    ["language_records", "语言能力记录", "分别记录英语、日语、普通话等语言的等级、成绩、证书和听说读写能力"],
     ["experience", "实习与工作经历", "记录每段实习/工作中的公司、岗位、职责、工具和可量化成果"],
     ["projects", "项目经历", "记录课程、科研、业务、竞赛和个人项目中的具体贡献"],
     ["campus_experience", "学生干部与校园经历", "记录学生组织、班级职务、社团和校园活动经历"],
@@ -95,7 +96,7 @@
         const label = element("label", "field-label", fieldDefinition[1]);
         const longTextKeys = ["description", "contribution", "achievements", "results", "tools", "skills", "notes", "activity"];
         const input = document.createElement(longTextKeys.includes(fieldDefinition[0]) ? "textarea" : "input");
-        if (input.tagName !== "TEXTAREA" && /(?:^|_)(?:date|start_date|end_date)$/.test(fieldDefinition[0])) {
+        if (input.tagName !== "TEXTAREA" && /(?:^|_)(?:date|start_date|end_date|valid_until)$/.test(fieldDefinition[0])) {
           input.type = String(record[fieldDefinition[0]] || "") === "至今" ? "text" : "date";
           if (input.type === "text") input.placeholder = "YYYY-MM-DD 或 至今";
         }

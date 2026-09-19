@@ -113,3 +113,21 @@ test("keeps day precision when parsing dates", function () {
   assert.equal(byPath["education.0.start_date"].value, "2021-09-01");
   assert.equal(byPath["education.0.end_date"].value, "2025-06-30");
 });
+
+test("extracts education type, marital status, and structured language records", function () {
+  const candidates = importer.candidatesFromText([
+    "婚姻状况：未婚",
+    "教育经历",
+    "学校：示例大学",
+    "学校类型：双一流公办本科",
+    "最高学历：本科",
+    "语言能力：英语 CET-6 580；日语 N2"
+  ].join("\n"), "complete-profile.pdf");
+  const byPath = Object.fromEntries(candidates.map((candidate) => [candidate.path, candidate]));
+  assert.equal(byPath["personal.marital_status"].value, "未婚");
+  assert.equal(byPath["education.0.school_type"].value, "双一流公办本科");
+  assert.equal(byPath["education.0.degree"].value, "本科");
+  assert.equal(byPath["language_records.0.language"].value, "英语");
+  assert.equal(byPath["language_records.0.score"].value, "580");
+  assert.equal(byPath["language_records.1.language"].value, "日语");
+});

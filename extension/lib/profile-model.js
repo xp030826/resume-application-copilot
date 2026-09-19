@@ -39,6 +39,7 @@
     ["intent.salary_monthly", "期望月薪", "text", true],
     ["intent.relocation", "是否接受异地/出差", "text", true],
     ["education.0.school", "最高学历学校", "text", false],
+    ["education.0.school_type", "最高学历学校类型", "text", false],
     ["education.0.department", "院系", "text", false],
     ["education.0.major", "专业", "text", false],
     ["education.0.degree", "学历/学位", "text", false],
@@ -74,8 +75,16 @@
     education: {
       label: "教育经历",
       fields: [
-        ["school", "学校"], ["department", "院系"], ["major", "专业"], ["degree", "学历/学位"],
+        ["school", "学校"], ["school_type", "学校类型/性质"], ["department", "院系"], ["major", "专业"], ["degree", "学历/学位"],
         ["start_date", "入学时间"], ["end_date", "毕业时间"], ["gpa", "GPA/平均分"], ["ranking", "排名"], ["courses", "核心课程"]
+      ]
+    },
+    language_records: {
+      label: "语言能力记录",
+      fields: [
+        ["language", "语言"], ["level", "等级/熟练度"], ["score", "考试成绩"], ["certificate", "证书/考试"],
+        ["speaking", "口语"], ["listening", "听力"], ["reading", "阅读"], ["writing", "写作"],
+        ["valid_until", "有效期至"], ["notes", "补充说明"]
       ]
     },
     experience: {
@@ -122,7 +131,7 @@
         target_roles: [], preferred_cities: [], industries: [], employment_type: "", availability: "",
         days_per_week: "", internship_months: "", salary_monthly: "", relocation: ""
       },
-      education: [], experience: [], projects: [], certificates: [], campus_experience: [], volunteer_experience: [],
+      education: [], language_records: [], experience: [], projects: [], certificates: [], campus_experience: [], volunteer_experience: [],
       skills: { summary: "", languages: "", certificates: "" },
       answers: { self_introduction: "", motivation: "", strengths: "", weaknesses: "", career_plan: "" },
       ai: { provider: "OpenAI-compatible", endpoint: "https://api.openai.com/v1/chat/completions", model: "gpt-4o-mini", api_key: "" },
