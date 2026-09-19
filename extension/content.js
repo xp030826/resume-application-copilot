@@ -5,6 +5,31 @@
 
   const marker = "data-resume-copilot-id";
   const ignoredTypes = ["hidden", "password", "file", "submit", "button", "reset", "image"];
+  const customSelectSelector = "[role=combobox], [aria-haspopup=listbox], .ant-select, .el-select, .select2, .select2-selection, [data-testid*=select], [class*=select], [class*=Select], [class*=dropdown], [class*=Dropdown], [class*=picker], [class*=Picker]";
+
+  function compactText(value) {
+    return String(value || "").replace(/[\u00a0\t\r\n]+/g, " ").replace(/\s{2,}/g, " ").trim();
+  }
+
+  function usefulLabel(value) {
+    const text = compactText(value).replace(/[＊*]+/g, "").trim();
+    if (!text || /^(请选择|请输入|请选择\.\.\.|请输入\.\.\.|必填项未填写|未填写|\+?\d{1,4})$/i.test(text)) return "";
+    return text.slice(0, 180);
+  }
+
+  function customRoot(element) {
+    if (!element) return element;
+    if (element.matches && element.matches(customSelectSelector)) return element;
+    return element.closest ? (element.closest(customSelectSelector) || element) : element;
+  }
+
+  function isSelectLike(element) {
+    if (!element) return false;
+    if (element.tagName === "SELECT") return true;
+    if (element.matches && element.matches(customSelectSelector)) return true;
+    if (element.getAttribute("role") === "combobox" || element.getAttribute("aria-haspopup") === "listbox") return true;
+    return element.tagName === "INPUT" && (/请选择|select|选择/.test(element.placeholder || "") || element.readOnly);
+  }
 
   function labelFor(element) {
     if (element.labels && element.labels.length) return Array.from(element.labels).map(function (label) { return label.innerText; }).join(" ");
@@ -14,8 +39,32 @@
     }
     const parent = element.closest("label");
     if (parent) return parent.innerText;
-    const container = element.closest(".form-item, .form-group, [class*=field], [class*=item], li, td, tr");
-    return container ? (container.innerText || "").slice(0, 180) : "";
+    const labelledBy = (element.getAttribute("aria-labelledby") || "").split(/\s+/).map(function (id) {
+      const node = id ? document.getElementById(id) : null;
+      return node ? node.innerText : "";
+    }).filter(Boolean).join(" ");
+    if (labelledBy) return labelledBy;
+    const dataLabel = element.getAttribute("data-label") || element.getAttribute("data-field-label") || element.getAttribute("data-title") || element.getAttribute("title");
+    if (dataLabel) return dataLabel;
+
+    const containerSelector = ".form-item, .form-group, .form-field, .formItem, .formField, [class*=form-item], [class*=formItem], [class*=field], [class*=Field], [class*=question], [class*=Question], li, td, tr";
+    let node = element;
+    for (let level = 0; node && level < 7; level += 1, node = node.parentElement) {
+      const labelNodes = Array.from(node.querySelectorAll("label, [class*=label], [class*=Label], [class*=title], [class*=Title], [data-label], [data-field-label]"));
+      const explicit = labelNodes.map(function (candidate) {
+        return usefulLabel(candidate.getAttribute("data-label") || candidate.getAttribute("data-field-label") || candidate.innerText);
+      }).filter(Boolean);
+      if (explicit.length) return explicit[0];
+      if (node.matches && node.matches(containerSelector)) {
+        const lines = compactText(node.innerText).split(/\s{2,}|(?=必填)/).map(usefulLabel).filter(Boolean);
+        if (lines.length) {
+          const placeholder = usefulLabel(element.getAttribute("placeholder"));
+          const filtered = lines.filter(function (line) { return line !== placeholder && line !== usefulLabel(element.value); });
+          if (filtered.length) return filtered[0];
+        }
+      }
+    }
+    return usefulLabel(element.getAttribute("aria-label")) || usefulLabel(element.placeholder) || usefulLabel(element.name) || "";
   }
 
   function choiceLabel(element) {
@@ -25,10 +74,11 @@
   }
 
   function editableFields() {
-    const controls = Array.from(new Set(Array.from(document.querySelectorAll("input, textarea, select, [role=combobox], [aria-haspopup=listbox], .ant-select, .el-select, .select2-selection, [data-testid*=select]"))));
+    const rawControls = Array.from(document.querySelectorAll("input, textarea, select, " + customSelectSelector));
+    const controls = Array.from(new Set(rawControls.map(customRoot)));
     return controls.filter(function (element) {
       const type = (element.type || "").toLowerCase();
-      return !element.disabled && !element.readOnly && !ignoredTypes.includes(type) && element.getAttribute("aria-disabled") !== "true";
+      return !element.disabled && (!element.readOnly || isSelectLike(element)) && !ignoredTypes.includes(type) && element.getAttribute("aria-disabled") !== "true";
     });
   }
 
@@ -41,6 +91,7 @@
         id = "rc-" + Date.now() + "-" + sequence;
         element.setAttribute(marker, id);
       }
+      const fieldContainer = element.closest(".form-item, .form-group, .form-field, .formItem, .formField, [class*=form-item], [class*=formItem], [class*=field], [class*=Field], [class*=question], [class*=Question], li, td, tr");
       const meta = {
         label: labelFor(element),
         choiceLabel: choiceLabel(element),
@@ -48,7 +99,11 @@
         name: element.name || "",
         id: element.id || "",
         autocomplete: element.autocomplete || "",
-        ariaLabel: element.getAttribute("aria-label") || ""
+        ariaLabel: element.getAttribute("aria-label") || "",
+        dataLabel: element.getAttribute("data-label") || element.getAttribute("data-field-label") || "",
+        title: element.getAttribute("title") || "",
+        formLabel: labelFor(element),
+        context: fieldContainer ? compactText(fieldContainer.innerText).slice(0, 320) : ""
       };
       const match = ResumeCopilotMapper.planField(meta, profile);
       const result = {
@@ -94,7 +149,7 @@
   }
 
   function isCustomSelectElement(element) {
-    return element.matches("[role=combobox], [aria-haspopup=listbox], .ant-select, .el-select, .select2-selection, [data-testid*=select]");
+    return element && element.tagName !== "SELECT" && isSelectLike(element);
   }
 
   function isVisible(element) {
@@ -105,6 +160,7 @@
   }
 
   function customOptionNodes(control) {
+    control = customRoot(control);
     const nodes = [];
     const controlledIds = [control.getAttribute("aria-controls"), control.getAttribute("aria-owns")].filter(Boolean);
     controlledIds.forEach(function (id) {
@@ -116,16 +172,25 @@
   }
 
   function matchingCustomOption(control, value) {
+    control = customRoot(control);
     return customOptionNodes(control).find(function (option) {
       return valuesMatch(option.innerText || option.textContent || "", value) ||
         valuesMatch(option.getAttribute("data-value") || "", value);
     });
   }
 
+  function clickLikeUser(element) {
+    if (!element) return;
+    ["mousedown", "mouseup"].forEach(function (type) {
+      element.dispatchEvent(new MouseEvent(type, { bubbles: true, cancelable: true, view: window }));
+    });
+    if (typeof element.click === "function") element.click();
+  }
+
   function waitForCustomOption(control, value, attempt) {
     const option = matchingCustomOption(control, value);
     if (option) {
-      option.click();
+      clickLikeUser(option);
       control.dispatchEvent(new Event("input", { bubbles: true }));
       control.dispatchEvent(new Event("change", { bubbles: true }));
       return Promise.resolve(true);
@@ -137,14 +202,15 @@
   }
 
   async function setCustomValue(element, value) {
+    element = customRoot(element);
     const existing = matchingCustomOption(element, value);
     if (existing) {
-      existing.click();
+      clickLikeUser(existing);
       element.dispatchEvent(new Event("input", { bubbles: true }));
       element.dispatchEvent(new Event("change", { bubbles: true }));
       return true;
     }
-    if (element.getAttribute("aria-expanded") !== "true") element.click();
+    if (element.getAttribute("aria-expanded") !== "true") clickLikeUser(element);
     return waitForCustomOption(element, value, 0);
   }
 

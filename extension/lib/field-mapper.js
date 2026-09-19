@@ -11,6 +11,8 @@
     ["personal.gender", ["性别", "gender", "sex"], false],
     ["personal.birth_date", ["出生日期", "生日", "birth date", "birthday", "date of birth"], true],
     ["personal.nationality", ["国籍", "nationality", "citizenship"], true],
+    ["personal.ethnicity", ["民族", "民族成分", "ethnicity", "race"], false],
+    ["personal.marital_status", ["婚姻状况", "婚姻状态", "婚姻", "marital status", "marital"], false],
     ["personal.phone", ["手机", "手机号", "联系电话", "电话", "phone", "mobile", "telephone"], false],
     ["personal.email", ["邮箱", "电子邮箱", "email", "e-mail"], false],
     ["personal.wechat", ["微信", "wechat"], true],
@@ -28,7 +30,7 @@
     ["personal.work_authorization", ["工作授权", "工作许可", "work authorization", "visa", "sponsorship"], true],
     ["personal.military_status", ["兵役", "兵役情况", "military status"], true],
     ["intent.target_roles", ["期望职位", "目标岗位", "求职岗位", "申请职位", "target role", "desired position", "job title"], false],
-    ["intent.preferred_cities", ["期望城市", "工作地点", "意向城市", "preferred city", "preferred location", "preferred locations"], false],
+    ["intent.preferred_cities", ["期望城市", "工作地点", "工作城市", "意向城市", "意向工作地", "期望工作地", "preferred city", "preferred location", "preferred locations"], false],
     ["intent.industries", ["目标行业", "行业偏好", "industry", "industries"], false],
     ["intent.employment_type", ["工作性质", "岗位性质", "就业类型", "employment type", "job type"], false],
     ["intent.availability", ["到岗时间", "可到岗时间", "开始时间", "availability", "available from", "start date"], false],
@@ -112,7 +114,7 @@
   }
 
   function score(meta, aliases) {
-    const fields = [meta.label, meta.placeholder, meta.name, meta.id, meta.autocomplete, meta.ariaLabel]
+    const fields = [meta.label, meta.formLabel, meta.context, meta.dataLabel, meta.title, meta.placeholder, meta.name, meta.id, meta.autocomplete, meta.ariaLabel]
       .map(normalize).filter(Boolean);
     let best = 0;
     aliases.forEach(function (alias) {

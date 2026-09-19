@@ -44,3 +44,14 @@ test("does not mark GPA or ranking as sensitive", function () {
 test("does not guess unknown fields", function () {
   assert.equal(mapper.planField({ label: "验证码" }, profile), null);
 });
+
+test("maps common Chinese dropdown labels", function () {
+  const dropdownProfile = {
+    personal: { gender: "女", ethnicity: "汉族", marital_status: "未婚" },
+    intent: { preferred_cities: ["广州", "深圳"] }
+  };
+  assert.equal(mapper.planField({ label: "性别" }, dropdownProfile).value, "女");
+  assert.equal(mapper.planField({ label: "民族" }, dropdownProfile).value, "汉族");
+  assert.equal(mapper.planField({ label: "婚姻状况" }, dropdownProfile).value, "未婚");
+  assert.equal(mapper.planField({ label: "意向工作地（27秋招）" }, dropdownProfile).value, "广州、深圳");
+});

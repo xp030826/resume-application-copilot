@@ -499,6 +499,8 @@
     add("personal.phone", findFirst(text, [/(?:手机|手机号|联系电话|电话)[：:\s]*(1\d{10})/i, /(1\d{10})/]), false, "手机号");
     add("personal.email", findFirst(text, [/(?:邮箱|电子邮箱|email)[：:\s]*([\w.+-]+@[\w.-]+\.[A-Za-z]{2,})/i, /([\w.+-]+@[\w.-]+\.[A-Za-z]{2,})/i]), false, "邮箱");
     add("personal.gender", findFirst(text, [/(?:性别|gender|sex)[：:\s]*(男|女|男性|女性|其他|不便透露|male|female|other)/i, /^(男|女|男性|女性)$/m]), false, "性别");
+    add("personal.ethnicity", findFirst(text, [/(?:民族|民族成分|ethnicity)[：:\s]*([^\s\n，,]+)/i]), false, "民族");
+    add("personal.marital_status", findFirst(text, [/(?:婚姻状况|婚姻状态|marital status)[：:\s]*(未婚|已婚|离异|丧偶|保密|single|married|divorced|widowed)/i]), false, "婚姻状况");
     add("personal.birth_date", findFirst(text, [/(?:出生日期|出生年月|生日)[：:\s]*(\d{4}[年\/-]\d{1,2}(?:月)?(?:[日\/-]\d{1,2})?)/i]), true, "出生日期");
     add("sensitive.national_id", findFirst(text, [/(?:身份证号|身份证号码|公民身份号码)[：:\s]*([0-9Xx]{15,18})/i]), true, "身份证号");
     add("personal.hometown", findFirst(text, [/(?:籍贯)[：:\s]*([^\s\n，,]+)/i]), true, "籍贯");

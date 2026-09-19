@@ -11,6 +11,8 @@
     ["personal.gender", "性别", "text", false],
     ["personal.birth_date", "出生日期", "date", true],
     ["personal.nationality", "国籍", "text", true],
+    ["personal.ethnicity", "民族", "text", false],
+    ["personal.marital_status", "婚姻状况", "text", false],
     ["personal.phone", "手机号", "tel", false],
     ["personal.email", "邮箱", "email", false],
     ["personal.wechat", "微信", "text", true],
@@ -111,7 +113,7 @@
     return {
       schema_version: "1.1",
       personal: {
-        full_name: "", preferred_name: "", gender: "", birth_date: "", nationality: "中国",
+        full_name: "", preferred_name: "", gender: "", birth_date: "", nationality: "中国", ethnicity: "", marital_status: "",
         phone: "", email: "", wechat: "", current_city: "", district: "", address: "", postal_code: "",
         hometown: "", birthplace: "", hukou_location: "", political_status: "", github: "", linkedin: "",
         portfolio: "", work_authorization: "", military_status: ""
