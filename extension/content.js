@@ -108,6 +108,9 @@
         ariaLabel: element.getAttribute("aria-label") || "",
         dataLabel: element.getAttribute("data-label") || element.getAttribute("data-field-label") || "",
         title: element.getAttribute("title") || "",
+        inputType: element.type || "",
+        controlType: element.tagName === "SELECT" ? "select" : (isCustomSelectElement(element) ? "custom-select" : "input"),
+        optionsText: element.tagName === "SELECT" ? Array.from(element.options).map(function (option) { return option.textContent || option.value || ""; }).join(" ") : "",
         formLabel: labelFor(element),
         context: fieldContainer ? compactText(fieldContainer.innerText).slice(0, 320) : ""
       };
@@ -161,6 +164,24 @@
     });
   }
 
+  function dateParts(value) {
+    const text = String(value || "").trim();
+    const match = text.match(/(?:^|[^0-9])((?:19|20)\d{2})\s*(?:年|[./-])\s*(\d{1,2})(?:\s*(?:月|[./-])\s*(\d{1,2})\s*日?)?/);
+    if (!match) return null;
+    return { year: Number(match[1]), month: Number(match[2]), day: match[3] ? Number(match[3]) : null };
+  }
+
+  function dateOptionScore(optionText, desiredValue) {
+    const optionDate = dateParts(optionText);
+    const desiredDate = dateParts(desiredValue);
+    if (!optionDate || !desiredDate) return 0;
+    if (optionDate.year !== desiredDate.year) return 0;
+    if (desiredDate.month && optionDate.month !== desiredDate.month) return 0;
+    if (desiredDate.day && optionDate.day && optionDate.day !== desiredDate.day) return 0;
+    if (!desiredDate.day && optionDate.day) return 0;
+    return desiredDate.day && optionDate.day ? 100 : 98;
+  }
+
   function optionMatchScore(left, right) {
     const leftText = String(left || "").trim();
     const rightText = String(right || "").trim();
@@ -170,6 +191,8 @@
     const b = ResumeCopilotMapper.normalize(rightText);
     if (!a || !b) return 0;
     if (a === b) return 100;
+    const dateScore = dateOptionScore(leftText, rightText);
+    if (dateScore) return dateScore;
     const numberOf = function (value) {
       const match = String(value || "").match(/(?:^|[^0-9])(\d{1,4})(?:年|月|日)?(?:$|[^0-9])/);
       return match ? Number(match[1]) : NaN;

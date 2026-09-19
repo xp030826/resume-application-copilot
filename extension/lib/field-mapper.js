@@ -9,7 +9,7 @@
     ["personal.full_name", ["姓名", "真实姓名", "name", "full name", "candidate name", "legal name"], false],
     ["personal.preferred_name", ["英文名", "常用名", "preferred name", "english name", "given name"], false],
     ["personal.gender", ["性别", "gender", "sex"], false],
-    ["personal.birth_date", ["出生日期", "生日", "birth date", "birthday", "date of birth"], true],
+    ["personal.birth_date", ["出生日期", "出生年份", "出生月份", "出生日期年份", "出生日期月份", "出生日期日", "生日", "birth date", "birthday", "date of birth", "birth year", "birth month", "birth day", "birthYear", "birthMonth", "birthDay"], true],
     ["personal.nationality", ["国籍", "nationality", "citizenship"], true],
     ["personal.ethnicity", ["民族", "民族成分", "ethnicity", "race"], false],
     ["personal.marital_status", ["婚姻状况", "婚姻状态", "婚姻情况", "婚姻", "marital status", "marital"], false],
@@ -43,8 +43,8 @@
     ["education.0.department", ["院系", "学院", "department", "faculty"], false],
     ["education.0.major", ["专业", "major", "field of study", "discipline"], false],
     ["education.0.degree", ["学历", "学位", "最高学历", "最高学历/学位", "degree", "education level", "qualification"], false],
-    ["education.0.start_date", ["入学时间", "教育开始时间", "education start", "start of education"], false],
-    ["education.0.end_date", ["毕业时间", "教育结束时间", "graduation date", "graduation year", "education end"], false],
+    ["education.0.start_date", ["入学时间", "入学年份", "入学月份", "教育开始时间", "education start", "start of education", "education start year", "education start month", "startYear", "startMonth"], false],
+    ["education.0.end_date", ["毕业时间", "毕业年份", "毕业月份", "教育结束时间", "毕业日期年份", "graduation date", "graduation year", "graduation month", "education end", "graduationYear", "graduationMonth"], false],
     ["education.0.gpa", ["gpa", "绩点", "平均分", "grade point average"], false],
     ["education.0.ranking", ["专业排名", "成绩排名", "rank", "ranking", "class rank"], false],
     ["education.0.courses", ["核心课程", "课程", "courses", "coursework"], false],
@@ -138,6 +138,15 @@
     const isYear = /(?:年份|[（(]\s*年\s*[)）]|year\b)/i.test(context);
     const isMonth = /(?:月份|[（(]\s*月\s*[)）]|month\b)/i.test(context);
     const isDay = /(?:[（(]\s*日\s*[)）]|day\b)/i.test(context);
+    const optionText = String(meta.optionsText || "");
+    const optionHasDay = /(?:19|20)\d{2}\s*(?:年|[./-])\s*\d{1,2}(?:\s*月\s*\d{1,2}\s*日?(?!\d)|\s*[./-]\s*\d{1,2}(?!\d))/.test(optionText);
+    const optionHasMonth = /(?:19|20)\d{2}\s*[年./-]\s*\d{1,2}\s*月?/.test(optionText);
+    const combinedYearMonth = (isYear && isMonth) || /年月|year\s*[-/]?\s*month|month\s*[-/]?\s*year/i.test(context) || (!isYear && !isMonth && optionHasMonth);
+    const inputType = String(meta.inputType || "").toLowerCase();
+    if (inputType === "year") return match[1];
+    if (inputType === "month" && match[2]) return match[1] + "-" + match[2];
+    if (optionHasDay || inputType === "date") return value;
+    if (combinedYearMonth && match[2]) return match[1] + "-" + match[2];
     if (isYear) return match[1];
     if (isMonth && match[2]) return String(Number(match[2]));
     if (isDay && match[3]) return String(Number(match[3]));

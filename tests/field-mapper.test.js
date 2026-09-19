@@ -63,6 +63,24 @@ test("maps a full date to separate year, month, and day controls", function () {
   assert.equal(mapper.planField({ label: "出生日期（日）" }, dateProfile).value, "3");
 });
 
+test("maps date controls identified only by common field names", function () {
+  const dateProfile = { personal: { birth_date: "2001-02-03" } };
+  assert.equal(mapper.planField({ name: "birthYear" }, dateProfile).value, "2001");
+  assert.equal(mapper.planField({ name: "birthMonth" }, dateProfile).value, "2");
+  assert.equal(mapper.planField({ name: "birthDay" }, dateProfile).value, "3");
+});
+
+test("maps a full date to a combined year-month control", function () {
+  const dateProfile = { personal: { birth_date: "2001-02-03" } };
+  const match = mapper.planField({ label: "出生日期", controlType: "select", optionsText: "2001年1月 2001年2月 2001年3月" }, dateProfile);
+  assert.equal(match.value, "2001-02");
+});
+
+test("maps a full date to a native month input", function () {
+  const match = mapper.planField({ label: "出生日期", inputType: "month" }, { personal: { birth_date: "2001-02-03" } });
+  assert.equal(match.value, "2001-02");
+});
+
 test("builds a fill value from structured language records", function () {
   const match = mapper.planField({ label: "语言能力" }, {
     language_records: [{ language: "英语", level: "CET-6", score: "580" }]

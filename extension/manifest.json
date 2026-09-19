@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Resume Application Copilot",
-  "version": "0.3.7",
+  "version": "0.3.8",
   "description": "Build a local encrypted candidate profile, review form mappings, and safely prefill recruitment forms.",
   "permissions": ["storage", "activeTab", "scripting", "sidePanel", "tabs"],
   "optional_host_permissions": ["http://*/*", "https://*/*", "file:///*"],
