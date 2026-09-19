@@ -81,16 +81,18 @@
       const check = document.createElement("input");
       check.type = "checkbox";
       check.dataset.index = String(index);
-      check.disabled = !item.matched || !isDropdown(item);
-      check.checked = Boolean(item.matched && isDropdown(item) && item.confidence >= 0.7);
+      const dropdownAvailable = item.optionMatched !== false;
+      check.disabled = !item.matched || !isDropdown(item) || !dropdownAvailable;
+      check.checked = Boolean(item.matched && isDropdown(item) && dropdownAvailable && item.confidence >= 0.7);
       const body = document.createElement("span");
       const title = document.createElement("strong");
       title.textContent = item.fieldLabel || "未命名字段";
       const value = document.createElement("span");
       value.className = "plan-value";
-      value.textContent = item.matched ? (item.autoFilled ? " ✓ 已直接填充 → " : (item.ambiguous || item.confidence < 0.7 ? " ⚠ 待确认 → " : (isDropdown(item) ? " → 建议选择：" : " → "))) + item.value : " → 未找到明确资料";
+      value.textContent = item.matched ? (item.autoFilled ? " ✓ 已直接填充 → " : (item.ambiguous || item.confidence < 0.7 ? " ⚠ 待确认 → " : (isDropdown(item) ? " → 建议选择：" : " → "))) + (item.optionLabel || item.value) : " → 未找到明确资料";
       const meta = document.createElement("small");
-      meta.textContent = item.matched ? (item.path + " · " + Math.round(item.confidence * 100) + "% · " + (item.sourceDocument || "资料库") + (item.reason ? " · " + item.reason : "")) : (item.reason || "请手动填写");
+      const optionNote = item.optionMatched === false ? " · 页面没有匹配选项" : (item.optionConfidence ? " · 选项匹配 " + Math.round(item.optionConfidence) + "%" : "");
+      meta.textContent = item.matched ? (item.path + " · " + Math.round(item.confidence * 100) + "% · " + (item.sourceDocument || "资料库") + optionNote + (item.reason ? " · " + item.reason : "")) : (item.reason || "请手动填写");
       body.append(title, value, meta);
       row.append(check, body);
       planNode.append(row);
@@ -171,7 +173,9 @@
       const selected = Array.from(planNode.querySelectorAll("input:checked")).map(function (box) { return plan[Number(box.dataset.index)]; }).filter(function (item) { return item && isDropdown(item); });
       const tab = await activeTab();
       const response = await chrome.tabs.sendMessage(tab.id, { type: "resume-copilot-fill", items: selected });
-      show("已填充 " + response.filled + " 个字段。请人工复核，系统不会提交。");
+      const failures = Array.isArray(response.failed) ? response.failed : [];
+      const failureText = failures.length ? "；未选择 " + failures.length + " 个：" + failures.map(function (item) { return item.fieldLabel + "（" + item.reason + "）"; }).join("、") : "";
+      show("已填充 " + response.filled + " 个字段" + failureText + "。请人工复核，系统不会提交。", failures.length > 0);
     } catch (error) {
       show("填充失败：" + (error.message || error), true);
     }

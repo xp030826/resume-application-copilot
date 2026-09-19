@@ -31,10 +31,10 @@ The extension does not search for jobs, click Next, bypass CAPTCHAs, submit appl
 
 ### 方式二：使用发布 ZIP · Option 2: Use the release ZIP
 
-解压 `release/resume-application-copilot-v0.3.9.zip`，然后在扩展管理页选择解压后的文件夹。
+解压 `release/resume-application-copilot-v0.4.0.zip`，然后在扩展管理页选择解压后的文件夹。
 浏览器扩展不能直接从 ZIP 中加载。
 
-Extract `release/resume-application-copilot-v0.3.9.zip`, then select the extracted folder from the extension manager. Browsers cannot load the extension directly from a ZIP file.
+Extract `release/resume-application-copilot-v0.4.0.zip`, then select the extracted folder from the extension manager. Browsers cannot load the extension directly from a ZIP file.
 
 代码更新后必须在扩展管理页点击“重新加载”。如果浏览器仍显示旧图标或旧界面，请关闭并重新打开侧边栏。
 
@@ -115,6 +115,10 @@ After scanning, matched text inputs, textareas, dates, radio buttons, and checkb
 下拉框不会直接选择。扩展会根据资料库值计算页面选项的最佳匹配，并在侧边栏显示“建议选择”；你点击“确认选择下拉框”后，才会展开并选择对应选项。
 
 Dropdowns are not selected immediately. The extension scores the page options against the profile value and shows the recommended choice in the side panel. Click **Confirm Dropdown Selection** to open and select the recommended options.
+
+扫描时会先检查原生下拉框是否真的存在可匹配选项；确认后，扩展会通过原生 setter、`input` 和 `change` 事件同步 React/Vue 等页面框架。如果某个下拉框仍无法选择，侧边栏会显示具体字段和失败原因。
+
+During scanning, native selects are checked for an actual matching option. On confirmation, the extension uses the native setter plus `input` and `change` events so React/Vue forms can update their state. If a dropdown still cannot be selected, the side panel reports the exact field and failure reason.
 
 The dropdown matcher supports native selects, common custom dropdowns, comboboxes, year/month/day controls, and common Chinese/English synonyms.
 

@@ -115,6 +115,7 @@
         context: fieldContainer ? compactText(fieldContainer.innerText).slice(0, 320) : ""
       };
       const match = ResumeCopilotMapper.planField(meta, profile);
+      const selectResult = element.tagName === "SELECT" && match ? bestOptionResult(Array.from(element.options), match.value, optionText) : null;
       const result = {
         elementId: id,
         fieldLabel: meta.label || meta.choiceLabel || meta.placeholder || meta.name || meta.id || "未命名字段",
@@ -122,6 +123,9 @@
         type: element.type || "",
         controlType: element.tagName === "SELECT" ? "select" : (isCustomSelectElement(element) ? "custom-select" : "input"),
         pageName: meta.name || meta.id || "",
+        optionLabel: selectResult ? optionText(selectResult.option) : "",
+        optionMatched: selectResult ? selectResult.score > 0 : undefined,
+        optionConfidence: selectResult ? selectResult.score : undefined,
         matched: Boolean(match)
       };
       if (!match) return Object.assign(result, { confidence: 0, value: "", path: "", sensitive: false, reason: "资料库中没有明确匹配项" });
@@ -130,7 +134,7 @@
   }
 
   function setNativeValue(element, value) {
-    const prototype = element.tagName === "TEXTAREA" ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype;
+    const prototype = element.tagName === "SELECT" ? HTMLSelectElement.prototype : (element.tagName === "TEXTAREA" ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype);
     const descriptor = Object.getOwnPropertyDescriptor(prototype, "value");
     if (descriptor && descriptor.set) descriptor.set.call(element, value);
     else element.value = value;
@@ -207,7 +211,17 @@
     return 0;
   }
 
-  function bestOption(options, value, textFor) {
+  function optionText(option) {
+    return [
+      option && (option.innerText || option.textContent || ""),
+      option && option.value,
+      option && option.getAttribute && option.getAttribute("data-value"),
+      option && option.getAttribute && option.getAttribute("aria-label"),
+      option && option.getAttribute && option.getAttribute("title")
+    ].filter(Boolean).join(" ");
+  }
+
+  function bestOptionResult(options, value, textFor) {
     let best = null;
     let bestScore = 0;
     options.forEach(function (option) {
@@ -218,7 +232,12 @@
         bestScore = score;
       }
     });
-    return best;
+    return best ? { option: best, score: bestScore } : null;
+  }
+
+  function bestOption(options, value, textFor) {
+    const result = bestOptionResult(options, value, textFor);
+    return result ? result.option : null;
   }
 
   function isCustomSelectElement(element) {
@@ -248,9 +267,7 @@
 
   function matchingCustomOption(control, value) {
     control = customRoot(control);
-    return bestOption(customOptionNodes(control), value, function (option) {
-      return option.innerText || option.textContent || option.getAttribute("data-value") || "";
-    });
+    return bestOption(customOptionNodes(control), value, optionText);
   }
 
   function clickLikeUser(element) {
@@ -311,20 +328,18 @@
     const type = (element.type || "").toLowerCase();
     const value = String(item.value || "");
     if (type === "radio") {
-      if (!(valuesMatch(choiceLabel(element), value) || valuesMatch(element.value, value))) return false;
+      if (!(valuesMatch(choiceLabel(element), value) || valuesMatch(element.value, value))) return { ok: false, reason: "单选项标签与资料不匹配" };
       element.checked = true;
     } else if (type === "checkbox") {
       const target = ResumeCopilotMapper.normalize(value);
       const truthy = ["true", "yes", "是", "有", "同意", "接受", "1"].includes(target);
       element.checked = truthy || valuesMatch(choiceLabel(element), value);
     } else if (element.tagName === "SELECT") {
-      const option = bestOption(Array.from(element.options), value, function (candidate) {
-        return candidate.textContent || candidate.value || "";
-      }) || bestOption(Array.from(element.options), value, function (candidate) { return candidate.value || ""; });
-      if (!option) return false;
-      element.value = option.value;
+      const result = bestOptionResult(Array.from(element.options), value, optionText);
+      if (!result || result.score < 50) return { ok: false, reason: "下拉选项中没有足够匹配的值" };
+      setNativeValue(element, result.option.value);
     } else if (isCustomSelectElement(element)) {
-      return setCustomValue(element, value);
+      return { ok: await setCustomValue(element, value), reason: "自定义下拉框中没有找到匹配选项" };
     } else {
       element.focus();
       setNativeValue(element, value);
@@ -332,16 +347,23 @@
     element.dispatchEvent(new Event("input", { bubbles: true }));
     element.dispatchEvent(new Event("change", { bubbles: true }));
     element.blur();
-    return true;
+    return { ok: true };
   }
 
   async function fill(items) {
     let filled = 0;
+    const failed = [];
     for (const item of (items || [])) {
       const element = document.querySelector("[" + marker + '="' + CSS.escape(item.elementId) + '"]');
-      if (element && item.matched !== false && await setValue(element, item)) filled += 1;
+      if (!element || item.matched === false) {
+        failed.push({ fieldLabel: item.fieldLabel || item.path, reason: "页面字段已变化或不可访问" });
+        continue;
+      }
+      const outcome = await setValue(element, item);
+      if (outcome && outcome.ok) filled += 1;
+      else failed.push({ fieldLabel: item.fieldLabel || item.path, reason: outcome && outcome.reason ? outcome.reason : "未能写入页面" });
     }
-    return filled;
+    return { filled: filled, failed: failed };
   }
 
   chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
