@@ -1,0 +1,10 @@
+{
+  "name": "resume-application-copilot",
+  "version": "0.3.1",
+  "private": true,
+  "description": "Privacy-first AI resume profile and recruitment form prefill project",
+  "scripts": {
+    "test": "node --test --test-isolation=none tests/*.test.js"
+  },
+  "license": "MIT"
+}

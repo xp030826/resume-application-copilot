@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>求职申请助手 · 资料库</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="page">
+    <header class="page-header">
+      <div><p class="eyebrow">LOCAL ENCRYPTED VAULT</p><h1>个人资料库</h1><p>把简历之外的籍贯、生源地、户籍和申请常用答案也保存起来，投递时按页面字段逐项确认。</p></div>
+      <div class="header-actions"><button id="sample" class="secondary">载入示例</button><button id="export" class="secondary">导出 JSON 备份</button></div>
+    </header>
+
+    <section class="card import-card">
+      <div class="section-title"><div><h2>导入材料与解析记录</h2><p>导入原文、候选字段和材料记录会随资料库加密保存，刷新后解锁即可恢复。</p></div><label class="button secondary" for="documents">选择 PDF / DOCX / 图片 / JSON</label><input id="documents" type="file" accept="application/pdf,.pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,.docx,.txt,.md,.csv,.json,image/*" multiple hidden></div>
+      <div id="importStatus" class="status"></div>
+      <div id="savedAttachments" class="saved-attachments"></div>
+      <div id="savedMaterials" class="saved-materials"></div>
+      <div id="candidates" class="candidate-list"></div>
+      <details id="extractedTextPanel" class="extracted-text-panel" hidden><summary>查看完整解析原文</summary><textarea id="extractedText" rows="12" readonly></textarea></details>
+      <div class="actions"><button id="applyCandidates" disabled>应用已选候选</button></div>
+    </section>
+
+    <form id="profileForm" novalidate></form>
+
+    <details class="card advanced">
+      <summary>高级：查看或导入完整 JSON</summary>
+      <p>适合从 Skill 的 <code>profile_cli.py export-extension</code> 导入资料。保存时会以表单内容为准。</p>
+      <textarea id="profileJson" spellcheck="false"></textarea>
+      <div class="actions"><button id="applyJson" type="button" class="secondary">应用 JSON 到表单</button></div>
+    </details>
+
+    <section class="card save-card">
+      <h2>加密保存</h2>
+      <p>资料、导入原文、解析候选、敏感字段和 API Key 都只保存在当前浏览器的本地加密存储中。勾选本机自动解锁后，重新打开会直接恢复旧内容；敏感字段仍会在填充时再次确认。</p>
+      <label for="password">主密码（至少 8 位）</label>
+      <input id="password" type="password" autocomplete="new-password" placeholder="请设置或输入主密码">
+      <label class="checkbox-label"><input id="autoUnlock" type="checkbox" checked> 在本机自动解锁（不再重复输入主密码）</label>
+      <div class="actions"><button id="save" type="button">加密保存资料</button><button id="unlock" type="button" class="secondary">解密现有资料</button></div>
+      <div id="status" class="status"></div>
+    </section>
+  </main>
+  <script src="lib/profile-model.js"></script>
+  <script src="lib/document-importer.js"></script>
+  <script src="lib/crypto-vault.js"></script>
+  <script src="options.js"></script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+{
+  "schema_version": "1.0",
+  "personal": {"full_name": "林晓舟", "preferred_name": "Xiaozhou Lin", "phone": "13800000000", "email": "xiaozhou@example.com", "gender": "不公开", "birth_date": "", "current_city": "广州", "district": "天河区", "hometown": "广东", "political_status": "共青团员", "github": "https://github.com/example", "portfolio": "https://example.com"},
+  "intent": {"target_roles": ["AI 产品实习生", "数据分析实习生"], "preferred_cities": ["广州", "深圳"], "employment_type": "实习", "availability": "两周内", "days_per_week": 5, "internship_months": 6, "salary_monthly": "面议"},
+  "education": [{"school": "示例大学", "major": "应用经济学", "degree": "硕士", "start_date": "2025-09", "end_date": "2028-06", "gpa": "3.7/4.0", "ranking": "前10%"}],
+  "experience": [{"company": "示例科技有限公司", "industry": "互联网", "department": "产品与数据部", "title": "数据分析实习生", "employment_type": "实习", "location": "广州", "supervisor": "产品经理", "start_date": "2026-01", "end_date": "2026-06", "description": "搭建自动化报表并分析核心指标。", "achievements": "将周报整理时间缩短 30%。", "tools": "Excel、SQL、Python"}],
+  "projects": [{"name": "求职申请助手", "category": "个人项目", "role": "项目负责人", "team_size": "1", "start_date": "2026-06", "end_date": "至今", "description": "设计本地加密的求职资料库与网页填充流程。", "contribution": "设计资料模型、字段匹配和人工审核流程。", "results": "完成 Chrome 扩展原型。", "tools": "JavaScript、Chrome Extension"}],
+  "certificates": [{"name": "大学英语六级", "category": "语言证书", "issuer": "全国大学英语四六级考试委员会", "date": "2024-12", "level": "CET-6", "number": ""}],
+  "campus_experience": [{"organization": "示例大学学生会", "type": "学生干部", "role": "部门负责人", "start_date": "2023-09", "end_date": "2024-06", "description": "负责活动策划、成员分工和跨部门沟通。", "achievements": "组织 5 场校园活动，覆盖 800 余人。", "skills": "组织协调、沟通、项目管理"}],
+  "volunteer_experience": [{"organization": "示例社区", "activity": "社区志愿服务", "role": "志愿者", "location": "广州", "start_date": "2024-07", "end_date": "2024-08", "description": "协助社区开展居民信息登记和活动引导。", "hours": "24 小时", "achievements": "获得社区志愿服务证明。"}],
+  "skills": {"summary": "Python、SQL、Excel、AI 工作流设计", "languages": "英语 CET-6"},
+  "answers": {"self_introduction": "具备数据分析和 AI 工作流设计经验。", "motivation": "希望用 AI 优化真实业务流程。"},
+  "sensitive": {"national_id": "", "health": "", "emergency_contact": "", "reference_contact": ""}
+}

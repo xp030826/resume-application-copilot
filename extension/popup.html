@@ -1,0 +1,13 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Resume Copilot</title><link rel="stylesheet" href="styles.css"></head>
+<body><main class="popup">
+  <h1>Resume Application Copilot</h1>
+  <p>解锁后扫描当前招聘表单。敏感字段默认不勾选，提交动作始终由你完成。</p>
+  <label for="password">主密码</label><input id="password" type="password" autocomplete="current-password">
+  <div class="actions"><button id="scan">解锁并扫描</button><button id="options" class="secondary">资料库设置</button></div>
+  <div id="status" class="status"></div>
+  <div id="plan" class="plan"></div>
+  <div class="actions"><button id="fill" disabled>填充已勾选字段</button></div>
+  <script src="lib/crypto-vault.js"></script><script src="popup.js"></script>
+</main></body></html>

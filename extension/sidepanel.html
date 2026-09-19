@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>求职申请助手</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="sidepanel">
+    <header class="app-header">
+      <div><p class="eyebrow">LOCAL · REVIEW FIRST</p><h1>求职申请助手</h1></div>
+      <button id="options" class="icon-button" title="打开资料库设置">设置</button>
+    </header>
+    <p class="intro">你先打开投递页面，再扫描并确认要填入的字段。系统不会点击下一步或提交。</p>
+
+    <section class="card compact">
+      <label for="password">主密码（已开启本机自动解锁时可留空）</label>
+      <input id="password" type="password" autocomplete="current-password" placeholder="自动解锁时可留空">
+      <div class="actions"><button id="scan">解锁并扫描当前页面</button></div>
+      <div id="status" class="status" role="status"></div>
+    </section>
+
+    <section class="card review-card">
+      <div class="section-title"><div><h2>填充预览</h2><p id="summary">尚未扫描页面</p></div><button id="selectSafe" class="text-button" hidden>选中安全字段</button></div>
+      <div id="plan" class="plan"></div>
+      <div class="actions"><button id="fill" disabled>确认填充已选字段</button></div>
+      <p class="hint">敏感字段默认不选中；不确定字段只展示候选，不会自动填写。</p>
+    </section>
+
+    <section class="card ai-card">
+      <div class="section-title"><div><h2>AI 开放式答案</h2><p>只发送职位描述、问题和非敏感求职资料；生成后仍需你确认。</p></div></div>
+      <label for="question">申请问题</label>
+      <textarea id="question" rows="3" placeholder="例如：请介绍你为什么适合这个岗位"></textarea>
+      <label for="jobDescription">职位描述（可选）</label>
+      <textarea id="jobDescription" rows="4" placeholder="粘贴当前职位描述，帮助生成更有针对性的答案"></textarea>
+      <div class="actions"><button id="generate" class="secondary">生成草稿</button><button id="fillDraft" disabled>写入选中的文本框</button></div>
+      <label for="draftTarget">写入目标</label>
+      <select id="draftTarget" disabled><option value="">扫描后选择页面文本框</option></select>
+      <textarea id="draft" rows="6" placeholder="AI 草稿会显示在这里，确认后才能写入页面"></textarea>
+      <div id="aiStatus" class="status"></div>
+    </section>
+  </main>
+  <script src="lib/crypto-vault.js"></script>
+  <script src="sidepanel.js"></script>
+</body>
+</html>

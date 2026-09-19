@@ -1,0 +1,63 @@
+{
+  "schema_version": "1.0",
+  "personal": {
+    "full_name": "林晓舟",
+    "preferred_name": "Xiaozhou Lin",
+    "phone": "13800000000",
+    "email": "xiaozhou@example.com",
+    "gender": "不公开",
+    "birth_date": "",
+    "current_city": "广州",
+    "district": "天河区",
+    "hometown": "广东",
+    "political_status": "共青团员",
+    "github": "https://github.com/example",
+    "portfolio": "https://example.com"
+  },
+  "intent": {
+    "target_roles": ["AI 产品实习生", "数据分析实习生"],
+    "preferred_cities": ["广州", "深圳"],
+    "employment_type": "实习",
+    "availability": "两周内",
+    "days_per_week": 5,
+    "internship_months": 6,
+    "salary_monthly": "面议"
+  },
+  "education": [{
+    "school": "示例大学",
+    "major": "应用经济学",
+    "degree": "硕士",
+    "start_date": "2025-09",
+    "end_date": "2028-06",
+    "gpa": "3.7/4.0",
+    "ranking": "前10%",
+    "courses": ["计量经济学", "Python 数据分析", "机器学习"]
+  }],
+  "experience": [{
+    "company": "示例科技有限公司",
+    "department": "产品与数据部",
+    "title": "数据分析实习生",
+    "start_date": "2026-01",
+    "end_date": "2026-06",
+    "description": "搭建自动化报表并分析核心指标，帮助团队缩短日常数据整理时间。"
+  }],
+  "projects": [{
+    "name": "Resume Application Copilot",
+    "role": "项目负责人",
+    "description": "设计隐私优先的 AI 求职资料库与招聘表单预填工作流。"
+  }],
+  "skills": {
+    "summary": "Python、SQL、Excel、数据分析、AI 工作流设计",
+    "languages": "英语 CET-6，读写熟练"
+  },
+  "answers": {
+    "self_introduction": "具备数据分析和 AI 工作流设计经验，重视事实准确性、隐私与可验证交付。",
+    "motivation": "希望把数据与 AI 能力应用于真实业务流程优化。"
+  },
+  "sensitive": {
+    "national_id": "",
+    "health": "",
+    "emergency_contact": "",
+    "reference_contact": ""
+  }
+}
