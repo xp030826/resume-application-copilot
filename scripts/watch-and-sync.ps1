@@ -34,18 +34,18 @@ function Get-WorkingTreeSignature {
 function Sync-Once {
     & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $packageScript
     if ($LASTEXITCODE -ne 0) {
-        throw "扩展打包失败。"
+        throw "Extension packaging failed."
     }
 
     $message = "Auto-sync extension $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
     & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $syncScript -CommitMessage $message
     if ($LASTEXITCODE -ne 0) {
-        throw "GitHub 同步失败。"
+        throw "GitHub sync failed."
     }
 }
 
-Write-Output "正在监控扩展源码。间隔：$IntervalSeconds 秒。按 Ctrl+C 停止。"
-Write-Output "个人资料库不会被此脚本读取或上传。"
+Write-Output "Watching extension source. Interval: $IntervalSeconds seconds. Press Ctrl+C to stop."
+Write-Output "The profile vault is not read or uploaded by this script."
 $lastSignature = Get-WorkingTreeSignature
 
 do {

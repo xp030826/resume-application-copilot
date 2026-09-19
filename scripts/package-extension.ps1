@@ -8,13 +8,13 @@ $manifestPath = Join-Path $extensionPath "manifest.json"
 $releaseDirectory = Join-Path $projectRoot "release"
 
 if (-not (Test-Path -LiteralPath $manifestPath -PathType Leaf)) {
-    throw "找不到扩展 manifest.json：$manifestPath"
+    throw "Extension manifest.json was not found: $manifestPath"
 }
 
 $manifest = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
 $version = [string]$manifest.version
 if ($version -notmatch '^\d+\.\d+\.\d+$') {
-    throw "manifest.json 的版本号无效：$version"
+    throw "Invalid manifest version: $version"
 }
 
 New-Item -ItemType Directory -Path $releaseDirectory -Force | Out-Null
@@ -31,7 +31,7 @@ try {
     }
 
     Compress-Archive -Path (Join-Path $stagePackage "*") -DestinationPath $releasePath -CompressionLevel Optimal
-    Write-Output "已生成扩展包：$releasePath"
+    Write-Output "Created extension package: $releasePath"
 }
 finally {
     if (Test-Path -LiteralPath $stageRoot) {
