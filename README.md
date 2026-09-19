@@ -31,10 +31,10 @@ The extension does not search for jobs, click Next, bypass CAPTCHAs, submit appl
 
 ### 方式二：使用发布 ZIP · Option 2: Use the release ZIP
 
-解压 `release/resume-application-copilot-v0.3.5.zip`，然后在扩展管理页选择解压后的文件夹。
+解压 `release/resume-application-copilot-v0.3.6.zip`，然后在扩展管理页选择解压后的文件夹。
 浏览器扩展不能直接从 ZIP 中加载。
 
-Extract `release/resume-application-copilot-v0.3.5.zip`, then select the extracted folder from the extension manager. Browsers cannot load the extension directly from a ZIP file.
+Extract `release/resume-application-copilot-v0.3.6.zip`, then select the extracted folder from the extension manager. Browsers cannot load the extension directly from a ZIP file.
 
 代码更新后必须在扩展管理页点击“重新加载”。如果浏览器仍显示旧图标或旧界面，请关闭并重新打开侧边栏。
 
@@ -52,8 +52,8 @@ After code updates, click **Reload** in the extension manager. If an old icon or
    In **Imported Materials & Parsing History**, select a PDF, DOCX, TXT, JSON, or image file.
 4. PDF 和 DOCX 会在本地解析；解析出的原文和候选字段会显示在页面中。
    PDF and DOCX files are parsed locally. Extracted text and candidate fields are shown for review.
-5. 检查候选字段，点击“应用已选候选”。低置信度和敏感候选不会被盲目应用。
-   Review candidates and click **Apply Selected Candidates**. Low-confidence and sensitive candidates are not applied blindly.
+5. 检查候选字段，点击“应用已选候选”。达到置信度阈值的候选默认选中，敏感候选也会保留为可应用项。
+   Review candidates and click **Apply Selected Candidates**. Candidates above the confidence threshold are selected by default, including sensitive candidates.
 6. 检查个人资料表单，点击“加密保存资料”。
    Review the profile form and click **Save Profile Encrypted**.
 
@@ -92,19 +92,25 @@ GPA        → 3.7/4.0   GPA             → 3.7/4.0
 专业排名   → 5/100     Class rank      → 5/100
 ```
 
-### 4. 确认填充 · Confirm and fill
+### 4. 文字直填与下拉确认 · Text fill and dropdown confirmation
 
-点击“确认填充已选字段”后，扩展可以处理文本框、文本域、日期、原生下拉框、常见自定义下拉框、combobox、单选框和复选框。
+扫描完成后，匹配度达到阈值的文本框、文本域、日期、单选框和复选框会直接写入资料库内容。敏感字段也按同一规则处理。
 
-After clicking **Confirm Selected Fields**, the extension can handle text inputs, textareas, dates, native selects, common custom dropdowns, comboboxes, radio buttons, and checkboxes.
+After scanning, matched text inputs, textareas, dates, radio buttons, and checkboxes above the confidence threshold are filled directly from the profile vault. Sensitive fields follow the same rule.
+
+下拉框不会直接选择。扩展会根据资料库值计算页面选项的最佳匹配，并在侧边栏显示“建议选择”；你点击“确认选择下拉框”后，才会展开并选择对应选项。
+
+Dropdowns are not selected immediately. The extension scores the page options against the profile value and shows the recommended choice in the side panel. Click **Confirm Dropdown Selection** to open and select the recommended options.
+
+The dropdown matcher supports native selects, common custom dropdowns, comboboxes, year/month/day controls, and common Chinese/English synonyms.
 
 扩展会根据选项文字选择“男/女”“本科/硕士”“Male/Female”等对应选项。自定义下拉框会先展开，再点击匹配的可见选项。
 
 It matches option text such as `男/女`, `本科/硕士`, and `Male/Female`. Custom dropdowns are expanded before the matching visible option is selected.
 
-低置信度字段只作为候选展示；敏感字段仍需人工确认。扩展不会点击“下一步”“提交”“验证码”或其他最终动作。
+低置信度字段只作为候选展示。扩展不会点击“下一步”“提交”“验证码”或其他最终动作。
 
-Low-confidence fields remain candidates for manual review. Sensitive fields require an additional confirmation. The extension never clicks Next, Submit, CAPTCHA, or other final-action controls.
+Low-confidence fields remain candidates for manual review. The extension never clicks Next, Submit, CAPTCHA, or other final-action controls.
 
 ## PDF 和材料解析 · PDF and document parsing
 
@@ -118,9 +124,9 @@ Scanned or image-only PDFs require OCR when text extraction returns `0` characte
 
 ## 本地模拟验证 · Local demo
 
-项目中的 `demo/` 提供不访问真实招聘网站的测试页面。用浏览器打开其中的本地测试页面，然后按“扫描 → 审核 → 确认填充”验证流程。
+项目中的 `demo/` 提供不访问真实招聘网站的测试页面。用浏览器打开其中的本地测试页面，然后按“扫描 → 文字直填 → 下拉确认”验证流程。
 
-The `demo/` directory contains a local form for testing without visiting a real recruitment website. Open it in a browser and verify the flow: **Scan → Review → Confirm Fill**.
+The `demo/` directory contains a local form for testing without visiting a real recruitment website. Open it in a browser and verify the flow: **Scan → Direct Text Fill → Confirm Dropdowns**.
 
 ## 导出 JSON 是什么 · What does JSON export mean?
 
@@ -185,8 +191,8 @@ The script blocks PDFs, DOCX files, profile JSON exports, `private/`, and `vault
   Regular and sensitive profile data are encrypted with AES-GCM.
 - AI 请求只发送生成答案所需的非敏感资料；身份证、银行卡和家庭信息不会自动发送。
   AI requests include only the non-sensitive data needed for an answer; ID numbers, bank-card data, and family information are not sent automatically.
-- 所有填充都需要用户主动点击确认。
-  Every fill action requires an explicit user confirmation.
+- 扫描页面需要用户主动点击；文字字段在扫描后直填，下拉框需要用户点击确认选择。
+  The user must initiate the page scan; text fields fill after scanning, while dropdowns require an explicit confirmation.
 - 不实现自动提交、批量投递、验证码绕过或后台读取所有网站。
   Automatic submission, bulk applications, CAPTCHA bypassing, and background scanning are not implemented.
 

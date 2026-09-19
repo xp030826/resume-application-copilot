@@ -22,6 +22,10 @@
     showNode(status, message, error);
   }
 
+  function isDropdown(item) {
+    return item && (item.controlType === "select" || item.controlType === "custom-select");
+  }
+
   async function activeTab() {
     const tabs = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
     const candidate = tabs.find(function (tab) { return tab && tab.id; });
@@ -67,29 +71,31 @@
     planNode.replaceChildren();
     const matched = items.filter(function (item) { return item.matched; });
     const unresolved = items.length - matched.length;
-    summary.textContent = "共识别 " + items.length + " 个可编辑字段，匹配 " + matched.length + " 个" + (unresolved ? "，待确认 " + unresolved + " 个" : "");
-    selectSafeButton.hidden = matched.length === 0;
+    const dropdowns = matched.filter(isDropdown);
+    const textFields = matched.filter(function (item) { return !isDropdown(item); });
+    summary.textContent = "共识别 " + items.length + " 个可编辑字段，文字直填 " + textFields.length + " 个，下拉待确认 " + dropdowns.length + " 个" + (unresolved ? "，未匹配 " + unresolved + " 个" : "");
+    selectSafeButton.hidden = dropdowns.length === 0;
     items.forEach(function (item, index) {
       const row = document.createElement("label");
       row.className = "plan-row" + (!item.matched ? " unresolved" : "") + (item.sensitive ? " restricted" : "");
       const check = document.createElement("input");
       check.type = "checkbox";
       check.dataset.index = String(index);
-      check.disabled = !item.matched;
-      check.checked = Boolean(item.matched && item.confidence >= 0.7);
+      check.disabled = !item.matched || !isDropdown(item);
+      check.checked = Boolean(item.matched && isDropdown(item) && item.confidence >= 0.7);
       const body = document.createElement("span");
       const title = document.createElement("strong");
       title.textContent = item.fieldLabel || "未命名字段";
       const value = document.createElement("span");
       value.className = "plan-value";
-      value.textContent = item.matched ? " → " + item.value : " → 未找到明确资料";
+      value.textContent = item.matched ? (item.autoFilled ? " ✓ 已直接填充 → " : (isDropdown(item) ? " → 建议选择：" : " → ")) + item.value : " → 未找到明确资料";
       const meta = document.createElement("small");
       meta.textContent = item.matched ? (item.path + " · " + Math.round(item.confidence * 100) + "% · " + (item.sourceDocument || "资料库")) : (item.reason || "请手动填写");
       body.append(title, value, meta);
       row.append(check, body);
       planNode.append(row);
     });
-    fillButton.disabled = matched.length === 0;
+    fillButton.disabled = dropdowns.length === 0;
     draftTarget.replaceChildren();
     const textTargets = matched.filter(function (item) {
       return item.tag === "textarea" || /自我|介绍|动机|优势|规划|说明|why|motivation|about/i.test(item.fieldLabel || "");
@@ -120,7 +126,7 @@
   selectSafeButton.addEventListener("click", function () {
     planNode.querySelectorAll("input[type=checkbox]:not(:disabled)").forEach(function (box, index) {
       const item = plan[Number(box.dataset.index)];
-      box.checked = Boolean(item && item.matched && item.confidence >= 0.7);
+      box.checked = Boolean(item && isDropdown(item) && item.matched && item.confidence >= 0.7);
     });
   });
 
@@ -143,8 +149,18 @@
       currentProfile = profile;
       currentTab = tab;
       plan = response.items || [];
+      const textItems = plan.filter(function (item) {
+        return item.matched && !isDropdown(item) && item.confidence >= 0.7;
+      });
+      let textFilled = 0;
+      if (textItems.length) {
+        const textResponse = await chrome.tabs.sendMessage(tab.id, { type: "resume-copilot-fill", items: textItems });
+        textFilled = Number(textResponse && textResponse.filled || 0);
+        textItems.forEach(function (item) { item.autoFilled = true; });
+      }
       render(plan);
-      show("扫描完成，请逐项检查后再填充。");
+      const dropdownCount = plan.filter(function (item) { return item.matched && isDropdown(item) && item.confidence >= 0.7; }).length;
+      show("已直接填充文字字段 " + textFilled + " 个；发现 " + dropdownCount + " 个下拉框，请确认建议选项。");
     } catch (error) {
       show("扫描失败：" + (error.message || error), true);
     }
@@ -152,7 +168,7 @@
 
   fillButton.addEventListener("click", async function () {
     try {
-      const selected = Array.from(planNode.querySelectorAll("input:checked")).map(function (box) { return plan[Number(box.dataset.index)]; }).filter(Boolean);
+      const selected = Array.from(planNode.querySelectorAll("input:checked")).map(function (box) { return plan[Number(box.dataset.index)]; }).filter(function (item) { return item && isDropdown(item); });
       const tab = await activeTab();
       const response = await chrome.tabs.sendMessage(tab.id, { type: "resume-copilot-fill", items: selected });
       show("已填充 " + response.filled + " 个字段。请人工复核，系统不会提交。");

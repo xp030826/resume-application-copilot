@@ -161,6 +161,43 @@
     });
   }
 
+  function optionMatchScore(left, right) {
+    const leftText = String(left || "").trim();
+    const rightText = String(right || "").trim();
+    if (!leftText || /^(请选择|请选择\.\.\.|选择|全部|不限|请选择一项)$/i.test(leftText)) return 0;
+    if ((leftText.includes("男") && leftText.includes("女")) || /^(请选择|选择)/.test(leftText)) return 0;
+    const a = ResumeCopilotMapper.normalize(leftText);
+    const b = ResumeCopilotMapper.normalize(rightText);
+    if (!a || !b) return 0;
+    if (a === b) return 100;
+    const numberOf = function (value) {
+      const match = String(value || "").match(/(?:^|[^0-9])(\d{1,4})(?:年|月|日)?(?:$|[^0-9])/);
+      return match ? Number(match[1]) : NaN;
+    };
+    const leftNumber = numberOf(leftText);
+    const rightNumber = numberOf(rightText);
+    if (Number.isFinite(leftNumber) && Number.isFinite(rightNumber) && leftNumber === rightNumber) return 95;
+    if (valuesMatch(leftText, rightText)) return 90;
+    const targets = rightText.split(/[，,、/／;；\s]+/).map(function (item) { return item.trim(); }).filter(Boolean);
+    if (targets.some(function (target) { return ResumeCopilotMapper.normalize(target) === a; })) return 85;
+    if (a.includes(b) || b.includes(a)) return 60;
+    return 0;
+  }
+
+  function bestOption(options, value, textFor) {
+    let best = null;
+    let bestScore = 0;
+    options.forEach(function (option) {
+      const text = textFor(option);
+      const score = optionMatchScore(text, value);
+      if (score > bestScore) {
+        best = option;
+        bestScore = score;
+      }
+    });
+    return best;
+  }
+
   function isCustomSelectElement(element) {
     return element && element.tagName !== "SELECT" && isSelectLike(element);
   }
@@ -188,9 +225,8 @@
 
   function matchingCustomOption(control, value) {
     control = customRoot(control);
-    return customOptionNodes(control).find(function (option) {
-      return valuesMatch(option.innerText || option.textContent || "", value) ||
-        valuesMatch(option.getAttribute("data-value") || "", value);
+    return bestOption(customOptionNodes(control), value, function (option) {
+      return option.innerText || option.textContent || option.getAttribute("data-value") || "";
     });
   }
 
@@ -259,9 +295,9 @@
       const truthy = ["true", "yes", "是", "有", "同意", "接受", "1"].includes(target);
       element.checked = truthy || valuesMatch(choiceLabel(element), value);
     } else if (element.tagName === "SELECT") {
-      const option = Array.from(element.options).find(function (candidate) {
-        return valuesMatch(candidate.textContent, value) || valuesMatch(candidate.value, value);
-      });
+      const option = bestOption(Array.from(element.options), value, function (candidate) {
+        return candidate.textContent || candidate.value || "";
+      }) || bestOption(Array.from(element.options), value, function (candidate) { return candidate.value || ""; });
       if (!option) return false;
       element.value = option.value;
     } else if (isCustomSelectElement(element)) {
