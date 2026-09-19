@@ -6,6 +6,8 @@
   const marker = "data-resume-copilot-id";
   const ignoredTypes = ["hidden", "password", "file", "submit", "button", "reset", "image"];
   const customSelectSelector = "[role=combobox], [aria-haspopup=listbox], .ant-select, .el-select, .select2, .select2-selection, [data-testid*=select], [class*=select], [class*=Select], [class*=dropdown], [class*=Dropdown], [class*=picker], [class*=Picker]";
+  const specificCustomSelectSelector = "[role=combobox], [aria-haspopup=listbox], .ant-select, .el-select, .select2, .select2-selection, [data-testid*=select], [class*=dropdown], [class*=Dropdown], [class*=picker], [class*=Picker]";
+  const genericSelectClassSelector = "[class*=select], [class*=Select]";
 
   function compactText(value) {
     return String(value || "").replace(/[\u00a0\t\r\n]+/g, " ").replace(/\s{2,}/g, " ").trim();
@@ -19,8 +21,12 @@
 
   function customRoot(element) {
     if (!element) return element;
-    if (element.matches && element.matches(customSelectSelector)) return element;
-    return element.closest ? (element.closest(customSelectSelector) || element) : element;
+    const specificAncestor = element.closest ? element.closest(specificCustomSelectSelector) : null;
+    if (specificAncestor) return specificAncestor;
+    if (element.matches && element.matches(specificCustomSelectSelector)) return element;
+    if (element.matches && element.matches(genericSelectClassSelector) && !/^(INPUT|TEXTAREA)$/i.test(element.tagName)) return element;
+    const genericAncestor = element.closest ? element.closest(genericSelectClassSelector) : null;
+    return genericAncestor && !/^(INPUT|TEXTAREA)$/i.test(genericAncestor.tagName) ? genericAncestor : element;
   }
 
   function isSelectLike(element) {
@@ -167,8 +173,10 @@
       const root = document.getElementById(id);
       if (root) nodes.push.apply(nodes, Array.from(root.querySelectorAll("[role=option], li, [data-value]")));
     });
-    nodes.push.apply(nodes, Array.from(document.querySelectorAll("[role=option], [role=listbox] li, .ant-select-item-option, .el-select-dropdown__item, [data-value]")));
-    return Array.from(new Set(nodes)).filter(isVisible);
+    nodes.push.apply(nodes, Array.from(document.querySelectorAll("[role=option], [role=listbox] li, .ant-select-item-option, .el-select-dropdown__item, [data-value], [class*=option], [class*=Option], [class*=menu-item], [class*=MenuItem], [class*=dropdown-item], [class*=DropdownItem]")));
+    return Array.from(new Set(nodes)).filter(function (node) {
+      return isVisible(node) && node.getAttribute("aria-disabled") !== "true" && !node.disabled;
+    });
   }
 
   function matchingCustomOption(control, value) {
@@ -187,6 +195,12 @@
     if (typeof element.click === "function") element.click();
   }
 
+  function customTrigger(element) {
+    const root = customRoot(element);
+    if (!root || !root.querySelector) return root;
+    return root.querySelector(".ant-select-selector, .el-select__wrapper, .select2-selection, [role=combobox], input:not([type=hidden]), button") || root;
+  }
+
   function waitForCustomOption(control, value, attempt) {
     const option = matchingCustomOption(control, value);
     if (option) {
@@ -195,7 +209,7 @@
       control.dispatchEvent(new Event("change", { bubbles: true }));
       return Promise.resolve(true);
     }
-    if (attempt >= 12) return Promise.resolve(false);
+    if (attempt >= 30) return Promise.resolve(false);
     return new Promise(function (resolve) {
       window.setTimeout(function () { resolve(waitForCustomOption(control, value, attempt + 1)); }, 50);
     });
@@ -210,8 +224,21 @@
       element.dispatchEvent(new Event("change", { bubbles: true }));
       return true;
     }
-    if (element.getAttribute("aria-expanded") !== "true") clickLikeUser(element);
-    return waitForCustomOption(element, value, 0);
+    const trigger = customTrigger(element);
+    if (element.getAttribute("aria-expanded") !== "true" && trigger.getAttribute("aria-expanded") !== "true") clickLikeUser(trigger);
+    let option = await waitForCustomOption(element, value, 0);
+    if (option) return true;
+
+    const searchInput = element.querySelector ? element.querySelector("input:not([type=hidden])") : null;
+    if (searchInput && searchInput !== trigger && !searchInput.readOnly) {
+      searchInput.focus();
+      setNativeValue(searchInput, value);
+      searchInput.dispatchEvent(new Event("input", { bubbles: true }));
+      searchInput.dispatchEvent(new Event("change", { bubbles: true }));
+      option = await waitForCustomOption(element, value, 0);
+      if (option) return true;
+    }
+    return false;
   }
 
   async function setValue(element, item) {

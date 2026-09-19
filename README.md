@@ -31,10 +31,10 @@ The extension does not search for jobs, click Next, bypass CAPTCHAs, submit appl
 
 ### 方式二：使用发布 ZIP · Option 2: Use the release ZIP
 
-解压 `release/resume-application-copilot-v0.3.2.zip`，然后在扩展管理页选择解压后的文件夹。
+解压 `release/resume-application-copilot-v0.3.3.zip`，然后在扩展管理页选择解压后的文件夹。
 浏览器扩展不能直接从 ZIP 中加载。
 
-Extract `release/resume-application-copilot-v0.3.2.zip`, then select the extracted folder from the extension manager. Browsers cannot load the extension directly from a ZIP file.
+Extract `release/resume-application-copilot-v0.3.3.zip`, then select the extracted folder from the extension manager. Browsers cannot load the extension directly from a ZIP file.
 
 代码更新后必须在扩展管理页点击“重新加载”。如果浏览器仍显示旧图标或旧界面，请关闭并重新打开侧边栏。
 
