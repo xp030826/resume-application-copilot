@@ -121,7 +121,9 @@
       return records.map(function (record) {
         const name = record && (record.language || record.name);
         if (!name) return "";
-        const details = [record.level, record.score, record.certificate].filter(Boolean).join(" ");
+        const details = [record.category, record.proficiency, record.level, record.exam, record.score, record.score_scale, record.certificate,
+          record.speaking && "口语" + record.speaking, record.listening && "听力" + record.listening,
+          record.reading && "阅读" + record.reading, record.writing && "写作" + record.writing].filter(Boolean).join(" ");
         return name + (details ? "（" + details + "）" : "");
       }).filter(Boolean).join("、");
     }

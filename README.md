@@ -31,10 +31,10 @@ The extension does not search for jobs, click Next, bypass CAPTCHAs, submit appl
 
 ### 方式二：使用发布 ZIP · Option 2: Use the release ZIP
 
-解压 `release/resume-application-copilot-v0.3.6.zip`，然后在扩展管理页选择解压后的文件夹。
+解压 `release/resume-application-copilot-v0.3.7.zip`，然后在扩展管理页选择解压后的文件夹。
 浏览器扩展不能直接从 ZIP 中加载。
 
-Extract `release/resume-application-copilot-v0.3.6.zip`, then select the extracted folder from the extension manager. Browsers cannot load the extension directly from a ZIP file.
+Extract `release/resume-application-copilot-v0.3.7.zip`, then select the extracted folder from the extension manager. Browsers cannot load the extension directly from a ZIP file.
 
 代码更新后必须在扩展管理页点击“重新加载”。如果浏览器仍显示旧图标或旧界面，请关闭并重新打开侧边栏。
 
@@ -64,6 +64,20 @@ Sensitive data such as ID numbers, family information, and emergency contacts is
 首次保存后可以勾选“在本机自动解锁”。之后在同一个浏览器配置中重新打开设置页或侧边栏，不需要重复输入主密码。浏览器只保存本机不可导出的加密密钥，不保存主密码。
 
 After the first save, you can enable **Unlock automatically on this device**. On later visits in the same browser profile, you do not need to enter the master password again. The browser stores a non-exportable device key, not the master password.
+
+### 语言能力的详细记录 · Detailed language records
+
+语言能力不是一个简单的“英语/日语”文本框，而是每种语言单独一条记录。每条记录可以填写：
+
+- 基础信息：语言、语言类别（母语/外语/方言/其他）。
+- 能力水平：总体熟练度，以及口语、听力、阅读、写作四项分别选择母语、精通、熟练、良好、基础或不适用。
+- 考试信息：考试名称、等级/考试级别、成绩、分数制、考试日期。
+- 证明信息：证书名称、证书编号、证明材料/附件名称、有效期和补充说明。
+- 使用场景：例如“日常交流、商务邮件、数据分析英文资料阅读”。
+
+录入示例：英语｜外语｜熟练｜CET-6｜580｜710分制｜口语良好｜听力熟练｜阅读熟练｜写作良好；日语｜外语｜基础｜N2。导入 PDF/DOCX 时，扩展会尽量拆出语言、考试、等级、成绩和分数制；不确定的内容仍会作为候选，需你确认后保存。
+
+Language proficiency is stored as one record per language, rather than one flat text field. Each record supports language category, overall proficiency, speaking/listening/reading/writing levels, exam name and level, score, score scale, exam date, certificate name and number, evidence attachment, validity period, usage scenarios, and notes. PDF/DOCX import tries to extract these details, while uncertain values remain candidates for your review.
 
 ### 2. 扫描招聘页面 · Scan the recruitment page
 

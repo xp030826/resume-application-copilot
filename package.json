@@ -1,6 +1,6 @@
 {
   "name": "resume-application-copilot",
-  "version": "0.3.6",
+  "version": "0.3.7",
   "private": true,
   "description": "Privacy-first AI resume profile and recruitment form prefill project",
   "scripts": {

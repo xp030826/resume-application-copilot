@@ -129,5 +129,9 @@ test("extracts education type, marital status, and structured language records",
   assert.equal(byPath["education.0.degree"].value, "本科");
   assert.equal(byPath["language_records.0.language"].value, "英语");
   assert.equal(byPath["language_records.0.score"].value, "580");
+  assert.equal(byPath["language_records.0.exam"].value, "CET-6");
+  assert.equal(byPath["language_records.0.score_scale"].value, "710分制");
+  assert.equal(byPath["language_records.1.level"].value, "N2");
+  assert.equal(byPath["language_records.1.score_scale"].value, "等级制");
   assert.equal(byPath["language_records.1.language"].value, "日语");
 });

@@ -9,11 +9,11 @@
 }
 * { box-sizing: border-box; }
 body { margin: 0; background: #f5f7fb; }
-button, input, textarea { font: inherit; }
+button, input, select, textarea { font: inherit; }
 button, .button { border: 0; border-radius: 9px; padding: 10px 14px; cursor: pointer; background: var(--purple); color: white; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; }
 button.secondary, .button.secondary { background: #e9e5fb; color: #4d2db4; }
 button:disabled { opacity: .45; cursor: not-allowed; }
-input, textarea { width: 100%; border: 1px solid #bcc7da; border-radius: 9px; padding: 10px; background: #fff; color: #172033; }
+input, select, textarea { width: 100%; border: 1px solid #bcc7da; border-radius: 9px; padding: 10px; background: #fff; color: #172033; }
 textarea { resize: vertical; }
 h1, h2, h3, p { margin-top: 0; }
 h1 { margin-bottom: 8px; font-size: 24px; }

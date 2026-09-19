@@ -255,14 +255,36 @@
     return segments.map(function (segment) {
       const language = languagePatterns.find(function (item) { return item[1].test(segment); });
       if (!language) return null;
-      const levelMatch = segment.match(/(CET[-\s]?[四4六6]|TEM[-\s]?[四4八8]|IELTS|TOEFL|TOPIK\s*\d*|雅思|托福|英语四级|英语六级|专业四级|专业八级|日语\s*N[1-5]|N[1-5]|二级甲等|二级乙等|精通|熟练|良好|一般|入门|母语)/i);
+      const examMatch = segment.match(/(CET[-\s]?[四4六6]|TEM[-\s]?[四4八8]|IELTS|TOEFL|TOPIK\s*\d*|雅思|托福|英语四级|英语六级|专业四级|专业八级|日语\s*N[1-5]|N[1-5]|二级甲等|二级乙等|普通话水平测试)/i);
+      const levelMatch = segment.match(/(CET[-\s]?[四4六6]|TEM[-\s]?[四4八8]|TOPIK\s*\d*|英语四级|英语六级|专业四级|专业八级|日语\s*N[1-5]|N[1-5]|二级甲等|二级乙等)/i);
+      const proficiencyMatch = segment.match(/(母语|精通|熟练|良好|基础|入门)/i);
       const scoreMatch = segment.match(/(?:成绩|分数|score|雅思|IELTS|托福|TOEFL)[^0-9]{0,8}(\d{1,3}(?:\.\d+)?)/i) || segment.match(/CET[-\s]?[四4六6][^0-9]{0,4}(\d{3})/i);
-      const certificateMatch = segment.match(/(CET[-\s]?[四4六6]|TEM[-\s]?[四4八8]|IELTS|TOEFL|TOPIK\s*\d*|雅思|托福|英语四级|英语六级|专业四级|专业八级|日语\s*N[1-5]|N[1-5]|普通话水平测试)/i);
+      const certificateMatch = segment.match(/(?:证书|证件|certificate)\s*[：:]?\s*([^，,；;]+)/i);
+      const certificateNumberMatch = segment.match(/(?:证书编号|证书号|编号|certificate\s*number)\s*[：:]?\s*([A-Za-z0-9-]+)/i);
+      const skill = function (label) {
+        const expression = new RegExp(label + "\\s*[：:]?\\s*(母语|精通|熟练|良好|基础|入门|不适用)", "i");
+        const match = expression.exec(segment);
+        return match ? match[1] : "";
+      };
+      const exam = examMatch ? examMatch[1] : "";
+      let scoreScale = "";
+      if (/(雅思|IELTS)/i.test(segment)) scoreScale = "9分制";
+      else if (/(托福|TOEFL)/i.test(segment)) scoreScale = "120分制";
+      else if (/CET[-\s]?[四4六6]|英语四级|英语六级/i.test(segment)) scoreScale = "710分制";
+      else if (/TEM[-\s]?[四4八8]|专业四级|专业八级|普通话水平测试/i.test(segment)) scoreScale = "100分制";
+      else if (/TOPIK|日语\s*N[1-5]|N[1-5]|二级甲等|二级乙等/i.test(segment)) scoreScale = "等级制";
       return {
         language: language[0],
-        level: levelMatch ? levelMatch[1] : "",
+        category: segment.match(/(母语|外语|方言)/i) ? segment.match(/(母语|外语|方言)/i)[1] : "",
+        proficiency: proficiencyMatch ? proficiencyMatch[1] : "",
+        level: levelMatch ? levelMatch[1].replace(/^日语\s*/i, "").trim() : "",
+        exam: exam,
         score: scoreMatch ? scoreMatch[1] : "",
-        certificate: certificateMatch ? certificateMatch[1] : "",
+        score_scale: scoreScale,
+        exam_date: (segment.match(/(?:考试日期|考试时间|exam\s*date)\s*[：:]?\s*([^，,；;]+)/i) || ["", ""])[1],
+        certificate: certificateMatch ? certificateMatch[1].trim() : exam,
+        certificate_number: certificateNumberMatch ? certificateNumberMatch[1] : "",
+        speaking: skill("口语"), listening: skill("听力"), reading: skill("阅读"), writing: skill("写作"),
         notes: segment
       };
     }).filter(Boolean);
@@ -539,9 +561,19 @@
       parseLanguageRecords(value).forEach(function (record, index) {
         const prefix = "language_records." + index + ".";
         add(prefix + "language", record.language, false, "语言能力·语言", 0.80);
+        if (record.category) add(prefix + "category", record.category, false, "语言能力·语言类别", 0.76);
+        if (record.proficiency) add(prefix + "proficiency", record.proficiency, false, "语言能力·总体熟练度", 0.78);
         if (record.level) add(prefix + "level", record.level, false, "语言能力·等级", 0.80);
+        if (record.exam) add(prefix + "exam", record.exam, false, "语言能力·考试名称", 0.80);
         if (record.score) add(prefix + "score", record.score, false, "语言能力·成绩", 0.78);
+        if (record.score_scale) add(prefix + "score_scale", record.score_scale, false, "语言能力·分数制", 0.76);
+        if (record.exam_date) add(prefix + "exam_date", normalizeDate(record.exam_date), false, "语言能力·考试日期", 0.72);
         if (record.certificate) add(prefix + "certificate", record.certificate, false, "语言能力·证书", 0.80);
+        if (record.certificate_number) add(prefix + "certificate_number", record.certificate_number, false, "语言能力·证书编号", 0.72);
+        if (record.speaking) add(prefix + "speaking", record.speaking, false, "语言能力·口语", 0.72);
+        if (record.listening) add(prefix + "listening", record.listening, false, "语言能力·听力", 0.72);
+        if (record.reading) add(prefix + "reading", record.reading, false, "语言能力·阅读", 0.72);
+        if (record.writing) add(prefix + "writing", record.writing, false, "语言能力·写作", 0.72);
         add(prefix + "notes", record.notes, false, "语言能力·原文", 0.76);
       });
     };

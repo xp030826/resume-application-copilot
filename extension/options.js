@@ -95,13 +95,35 @@
         const field = element("div", "field");
         const label = element("label", "field-label", fieldDefinition[1]);
         const longTextKeys = ["description", "contribution", "achievements", "results", "tools", "skills", "notes", "activity"];
-        const input = document.createElement(longTextKeys.includes(fieldDefinition[0]) ? "textarea" : "input");
-        if (input.tagName !== "TEXTAREA" && /(?:^|_)(?:date|start_date|end_date|valid_until)$/.test(fieldDefinition[0])) {
+        const controlType = fieldDefinition[2] || (longTextKeys.includes(fieldDefinition[0]) ? "textarea" : "text");
+        const input = document.createElement(controlType === "select" ? "select" : controlType === "textarea" ? "textarea" : "input");
+        const currentValue = Array.isArray(record[fieldDefinition[0]]) ? record[fieldDefinition[0]].join("、") : String(record[fieldDefinition[0]] || "");
+        if (controlType === "select") {
+          const placeholder = document.createElement("option");
+          placeholder.value = "";
+          placeholder.textContent = "请选择";
+          input.append(placeholder);
+          (fieldDefinition[3] || []).forEach(function (optionValue) {
+            const option = document.createElement("option");
+            option.value = optionValue;
+            option.textContent = optionValue;
+            input.append(option);
+          });
+          if (currentValue && !(fieldDefinition[3] || []).includes(currentValue)) {
+            const customOption = document.createElement("option");
+            customOption.value = currentValue;
+            customOption.textContent = currentValue + "（已有值）";
+            input.append(customOption);
+          }
+          input.value = currentValue;
+        } else if (input.tagName !== "TEXTAREA" && (controlType === "date" || /(?:^|_)(?:date|start_date|end_date|valid_until)$/.test(fieldDefinition[0]))) {
           input.type = String(record[fieldDefinition[0]] || "") === "至今" ? "text" : "date";
           if (input.type === "text") input.placeholder = "YYYY-MM-DD 或 至今";
+          input.value = currentValue;
+        } else {
+          if (input.tagName === "TEXTAREA") input.rows = 3;
+          input.value = currentValue;
         }
-        if (input.tagName === "TEXTAREA") input.rows = 3;
-        input.value = Array.isArray(record[fieldDefinition[0]]) ? record[fieldDefinition[0]].join("、") : String(record[fieldDefinition[0]] || "");
         input.dataset.collection = key;
         input.dataset.index = String(index);
         input.dataset.key = fieldDefinition[0];

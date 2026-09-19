@@ -36,5 +36,9 @@ test("profile model exposes the full experience modules", function () {
   assert.ok(model.collectionDefinitions.experience.fields.some((field) => field[0] === "achievements"));
   assert.ok(model.collectionDefinitions.campus_experience.fields.some((field) => field[0] === "role"));
   assert.ok(model.collectionDefinitions.language_records.fields.some((field) => field[0] === "score"));
+  assert.ok(model.collectionDefinitions.language_records.fields.some((field) => field[0] === "proficiency"));
+  assert.ok(model.collectionDefinitions.language_records.fields.some((field) => field[0] === "score_scale"));
+  assert.ok(model.collectionDefinitions.language_records.fields.some((field) => field[0] === "exam_date"));
+  assert.ok(model.collectionDefinitions.language_records.fields.some((field) => field[0] === "certificate_number"));
   assert.ok(model.fieldDefinitions.some((field) => field.path === "education.0.school_type"));
 });

@@ -82,9 +82,24 @@
     language_records: {
       label: "语言能力记录",
       fields: [
-        ["language", "语言"], ["level", "等级/熟练度"], ["score", "考试成绩"], ["certificate", "证书/考试"],
-        ["speaking", "口语"], ["listening", "听力"], ["reading", "阅读"], ["writing", "写作"],
-        ["valid_until", "有效期至"], ["notes", "补充说明"]
+        ["language", "语言", "text"],
+        ["category", "语言类别", "select", ["母语", "外语", "方言", "其他"]],
+        ["proficiency", "总体熟练度", "select", ["母语", "精通", "熟练", "良好", "基础", "入门"]],
+        ["level", "等级/考试级别", "text"],
+        ["exam", "考试名称", "text"],
+        ["score", "成绩", "text"],
+        ["score_scale", "分数制", "select", ["等级制", "百分制", "4分制", "5分制", "9分制", "100分制", "120分制", "710分制", "990分制", "其他"]],
+        ["exam_date", "考试日期", "date"],
+        ["certificate", "证书名称", "text"],
+        ["certificate_number", "证书编号", "text"],
+        ["speaking", "口语", "select", ["母语", "精通", "熟练", "良好", "基础", "不适用"]],
+        ["listening", "听力", "select", ["母语", "精通", "熟练", "良好", "基础", "不适用"]],
+        ["reading", "阅读", "select", ["母语", "精通", "熟练", "良好", "基础", "不适用"]],
+        ["writing", "写作", "select", ["母语", "精通", "熟练", "良好", "基础", "不适用"]],
+        ["usage", "使用场景", "textarea"],
+        ["valid_until", "有效期至", "date"],
+        ["evidence", "证明材料/附件名称", "text"],
+        ["notes", "补充说明", "textarea"]
       ]
     },
     experience: {
