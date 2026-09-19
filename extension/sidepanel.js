@@ -88,9 +88,9 @@
       title.textContent = item.fieldLabel || "未命名字段";
       const value = document.createElement("span");
       value.className = "plan-value";
-      value.textContent = item.matched ? (item.autoFilled ? " ✓ 已直接填充 → " : (isDropdown(item) ? " → 建议选择：" : " → ")) + item.value : " → 未找到明确资料";
+      value.textContent = item.matched ? (item.autoFilled ? " ✓ 已直接填充 → " : (item.ambiguous || item.confidence < 0.7 ? " ⚠ 待确认 → " : (isDropdown(item) ? " → 建议选择：" : " → "))) + item.value : " → 未找到明确资料";
       const meta = document.createElement("small");
-      meta.textContent = item.matched ? (item.path + " · " + Math.round(item.confidence * 100) + "% · " + (item.sourceDocument || "资料库")) : (item.reason || "请手动填写");
+      meta.textContent = item.matched ? (item.path + " · " + Math.round(item.confidence * 100) + "% · " + (item.sourceDocument || "资料库") + (item.reason ? " · " + item.reason : "")) : (item.reason || "请手动填写");
       body.append(title, value, meta);
       row.append(check, body);
       planNode.append(row);

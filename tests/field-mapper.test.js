@@ -56,6 +56,27 @@ test("maps common Chinese dropdown labels", function () {
   assert.equal(mapper.planField({ label: "意向工作地（27秋招）" }, dropdownProfile).value, "广州、深圳");
 });
 
+test("uses the nearby section to disambiguate repeated labels", function () {
+  const profile = {
+    intent: { preferred_cities: ["广州"] },
+    experience: [{ location: "深圳" }]
+  };
+  const match = mapper.planField({ label: "工作地点", context: "实习经历\n公司：示例公司\n工作地点" }, profile);
+  assert.equal(match.path, "experience.0.location");
+  assert.equal(match.value, "深圳");
+});
+
+test("does not auto-select an ambiguous generic role field", function () {
+  const match = mapper.planField({ label: "角色" }, {
+    experience: [{ title: "研究员" }],
+    projects: [{ role: "项目负责人" }],
+    campus_experience: [{ role: "部长" }]
+  });
+  assert.ok(match);
+  assert.equal(match.confidence < 0.7, true);
+  assert.equal(match.ambiguous, true);
+});
+
 test("maps a full date to separate year, month, and day controls", function () {
   const dateProfile = { personal: { birth_date: "2001-02-03" } };
   assert.equal(mapper.planField({ label: "出生日期（年）" }, dateProfile).value, "2001");

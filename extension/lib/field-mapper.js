@@ -154,38 +154,70 @@
   }
 
   function score(meta, aliases) {
-    const fields = [meta.label, meta.formLabel, meta.context, meta.dataLabel, meta.title, meta.placeholder, meta.name, meta.id, meta.autocomplete, meta.ariaLabel]
-      .map(normalize).filter(Boolean);
+    const fields = [
+      [meta.label, 1], [meta.formLabel, 0.98], [meta.dataLabel, 0.96], [meta.ariaLabel, 0.94],
+      [meta.name, 0.92], [meta.id, 0.88], [meta.placeholder, 0.86], [meta.title, 0.78],
+      [meta.autocomplete, 0.72]
+    ].map(function (item) { return { value: normalize(item[0]), weight: item[1] }; }).filter(function (item) { return item.value; });
+    const context = normalize(meta.context);
     let best = 0;
     aliases.forEach(function (alias) {
       const target = normalize(alias);
+      if (!target) return;
+      const specificity = target.length <= 3 ? 0.82 : 1;
       fields.forEach(function (field) {
-        if (!field || !target) return;
-        if (field === target) best = Math.max(best, 1);
-        else if (field.includes(target) || target.includes(field)) best = Math.max(best, 0.76);
+        if (field.value === target) best = Math.max(best, field.weight * specificity);
+        else if (field.value.includes(target) || target.includes(field.value)) best = Math.max(best, field.weight * specificity * 0.84);
       });
+      if (context === target) best = Math.max(best, 0.68 * specificity);
+      else if (context && (context.includes(target) || target.includes(context))) best = Math.max(best, 0.55 * specificity);
     });
     return best;
   }
 
+  function sectionAffinity(meta, path) {
+    const context = [meta.label, meta.formLabel, meta.context, meta.name, meta.id].filter(Boolean).join(" ");
+    const rules = [
+      [/^personal\./, /个人信息|基本信息|联系方式|personal|contact/i, 0.08],
+      [/^intent\./, /求职|应聘|意向|偏好|期望|job preference|desired|application/i, 0.10],
+      [/^education\./, /教育|学历|学校|院系|专业|education|school|degree/i, 0.10],
+      [/^experience\./, /实习|工作经历|工作经验|入职|公司|雇主|employment|work experience|employer/i, 0.12],
+      [/^projects\./, /项目|科研|竞赛项目|project|research/i, 0.12],
+      [/^campus_experience\./, /学生干部|校园|学生工作|社团|campus|student organization/i, 0.12],
+      [/^volunteer_experience\./, /志愿|社会实践|volunteer|social practice/i, 0.12],
+      [/^certificates\./, /证书|荣誉|奖项|竞赛|certificate|award/i, 0.10],
+      [/^skills\./, /技能|语言|技术|skill|language|technology/i, 0.10],
+      [/^answers\./, /自我介绍|求职动机|职业规划|优势|不足|question|motivation|career/i, 0.12],
+      [/^sensitive\./, /身份|家庭|紧急联系人|银行卡|sensitive|emergency|family/i, 0.10]
+    ];
+    const rule = rules.find(function (item) { return item[0].test(path) && item[1].test(context); });
+    return rule ? rule[2] : 0;
+  }
+
   function planField(meta, profile) {
-    let best = null;
+    const ranked = [];
     definitions.forEach(function (definition) {
       const value = renderValue(profileValue(profile, definition.path));
       if (!value) return;
-      const confidence = score(meta, definition.aliases);
-      if (confidence >= 0.55 && (!best || confidence > best.confidence)) {
-        const provenance = profile && profile.provenance && profile.provenance[definition.path];
-        best = {
-          path: definition.path,
-          value: datePart(meta, value),
-          confidence: confidence,
-          sensitive: definition.sensitive,
-          sourceDocument: provenance && provenance.sourceDocument ? provenance.sourceDocument : "资料库"
-        };
-      }
+      const baseScore = score(meta, definition.aliases);
+      if (baseScore < 0.50) return;
+      ranked.push({ definition: definition, value: value, baseScore: baseScore, adjustedScore: baseScore + sectionAffinity(meta, definition.path) });
     });
-    return best;
+    ranked.sort(function (left, right) { return right.adjustedScore - left.adjustedScore; });
+    if (!ranked.length) return null;
+    const selected = ranked[0];
+    const runnerUp = ranked[1];
+    const ambiguous = Boolean(runnerUp && runnerUp.baseScore >= 0.70 && Math.abs(selected.adjustedScore - runnerUp.adjustedScore) < 0.05);
+    const provenance = profile && profile.provenance && profile.provenance[selected.definition.path];
+    return {
+      path: selected.definition.path,
+      value: datePart(meta, selected.value),
+      confidence: ambiguous ? 0.49 : Math.min(1, selected.adjustedScore),
+      sensitive: selected.definition.sensitive,
+      sourceDocument: provenance && provenance.sourceDocument ? provenance.sourceDocument : "资料库",
+      ambiguous: ambiguous,
+      reason: ambiguous ? "存在多个相近字段，暂不自动填充" : "标签与资料库字段匹配"
+    };
   }
 
   return { definitions: definitions, normalize: normalize, getPath: getPath, planField: planField, score: score };

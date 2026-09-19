@@ -31,10 +31,10 @@ The extension does not search for jobs, click Next, bypass CAPTCHAs, submit appl
 
 ### 方式二：使用发布 ZIP · Option 2: Use the release ZIP
 
-解压 `release/resume-application-copilot-v0.3.8.zip`，然后在扩展管理页选择解压后的文件夹。
+解压 `release/resume-application-copilot-v0.3.9.zip`，然后在扩展管理页选择解压后的文件夹。
 浏览器扩展不能直接从 ZIP 中加载。
 
-Extract `release/resume-application-copilot-v0.3.8.zip`, then select the extracted folder from the extension manager. Browsers cannot load the extension directly from a ZIP file.
+Extract `release/resume-application-copilot-v0.3.9.zip`, then select the extracted folder from the extension manager. Browsers cannot load the extension directly from a ZIP file.
 
 代码更新后必须在扩展管理页点击“重新加载”。如果浏览器仍显示旧图标或旧界面，请关闭并重新打开侧边栏。
 
@@ -125,6 +125,10 @@ It matches option text such as `男/女`, `本科/硕士`, and `Male/Female`. Cu
 低置信度字段只作为候选展示。扩展不会点击“下一步”“提交”“验证码”或其他最终动作。
 
 Low-confidence fields remain candidates for manual review. The extension never clicks Next, Submit, CAPTCHA, or other final-action controls.
+
+匹配不是简单地把整页文字拿来搜索：扩展优先读取当前控件的标签、`name`、`id`、占位符和 ARIA 描述，再参考它所在的教育、实习、项目或校园经历模块。同一个“工作地点/职务/组织”可能对应多个资料字段时，会降低置信度并显示“待确认”，避免错误直填。
+
+Matching is not a blind whole-page text search. The extension prioritizes the current control's label, `name`, `id`, placeholder, and ARIA description, then uses the nearby education, work, project, or campus section as context. If a label such as “work location”, “role”, or “organization” matches multiple profile fields, confidence is lowered and the item stays for review instead of being filled automatically.
 
 日期资料统一保存为 `YYYY-MM-DD`，页面格式由扩展自动适配：原生日期框填写完整日期，原生年月框填写 `YYYY-MM`，年月日三个下拉框分别选择年、月、日，年月合并下拉框选择对应的年月，自定义下拉框则按选项中的完整日期或年月匹配。这样同一份资料可以重复用于不同招聘网站；只有页面选项无法明确对应时，才会保留为待确认项。
 
